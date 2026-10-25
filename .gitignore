@@ -24,3 +24,5 @@ instance/
 
 # Flask / Alembic temporales
 migrations/*.pyc
+
+config.py
