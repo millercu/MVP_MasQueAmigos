@@ -1,0 +1,449 @@
+{% extends "base.html" %}
+{% block title %}Panel de Administración - Torneo Bagadó{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-shield-lock me-2" viewBox="0 0 16 16">
+                  <path d="M5.338 1.59a61 61 0 0 0-2.837.856.48.48 0 0 0-.328.39c-.554 4.157.726 7.19 2.253 9.188a10.7 10.7 0 0 0 2.287 2.233c.346.244.652.42.893.533.12.057.218.095.293.118a1 1 0 0 0 .101.025 1 1 0 0 0 .1-.025c.076-.023.174-.061.294-.118.24-.113.547-.29.893-.533a10.7 10.7 0 0 0 2.287-2.233c1.527-1.997 2.807-5.031 2.253-9.188a.48.48 0 0 0-.328-.39c-.651-.213-1.75-.56-2.837-.855C9.552 1.29 8.531 1.067 8 1.067c-.53 0-1.552.223-2.662.524zM5.072.56C6.157.265 7.31 0 8 0s1.843.265 2.928.56c1.11.3 2.229.655 2.887.87a1.54 1.54 0 0 1 1.044 1.262c.596 4.477-.787 7.795-2.465 9.99a11.8 11.8 0 0 1-2.517 2.453 7 7 0 0 1-1.048.625c-.28.132-.581.24-.829.24s-.548-.108-.829-.24a7 7 0 0 1-1.048-.625 11.8 11.8 0 0 1-2.517-2.453C1.928 10.487.545 7.169 1.141 2.692A1.54 1.54 0 0 1 2.185 1.43 63 63 0 0 1 5.072.56"/>
+                  <path d="M9.5 6.5a1.5 1.5 0 0 1-1 1.415l.385 1.99a.5.5 0 0 1-.491.595h-.788a.5.5 0 0 1-.49-.595l.384-1.99a1.5 1.5 0 1 1 2-1.415"/>
+                </svg>
+                Panel de Administración
+            </h2>
+            <p class="text-muted mb-0">Gestión centralizada del torneo Copa Más Que Amigos.</p>
+        </div>
+    </div>
+
+    <!-- Sistema de pestañas (Tabs) para modularizar las secciones -->
+    <ul class="nav nav-tabs mb-4" id="adminTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-semibold" id="equipos-tab" data-bs-toggle="tab" data-bs-target="#equipos-content" type="button" role="tab">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-people me-1" viewBox="0 0 16 16">
+                  <path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1zm-7.978-1L7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002-.014.002zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4m3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0M6.936 9.28a6 6 0 0 0-1.23-.247A7 7 0 0 0 5 9c-4 0-5 3-5 4q0 1 1 1h4.216A2.24 2.24 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816M4.92 10A5.5 5.5 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275ZM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0m3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4"/>
+                </svg>
+                Gestión de Equipos
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-semibold" id="usuarios-tab" data-bs-toggle="tab" data-bs-target="#usuarios-content" type="button" role="tab">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-lines-fill me-1" viewBox="0 0 16 16">
+                  <path d="M6 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m-5 6s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zM11 3.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5m.5 2.5a.5.5 0 0 0 0 1h4a.5.5 0 0 0 0-1zm2 3a.5.5 0 0 0 0 1h2a.5.5 0 0 0 0-1zm0 3a.5.5 0 0 0 0 1h2a.5.5 0 0 0 0-1z"/>
+                </svg>
+                Comunidad Registrada
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-semibold" id="config-tab" data-bs-toggle="tab" data-bs-target="#config-content" type="button" role="tab">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-gear me-1" viewBox="0 0 16 16">
+                  <path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492M5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0"/>
+                  <path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.377l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115z"/>
+                </svg>
+                Configuración del Torneo
+            </button>
+        </li>
+
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-semibold" id="traspasos-tab" data-bs-toggle="tab" data-bs-target="#traspasos-content" type="button" role="tab">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left-right me-1" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M1 11.5a.5.5 0 0 0 .5.5h11.793l-3.147 3.146a.5.5 0 0 0 .708.708l4-4a.5.5 0 0 0 0-.708l-4-4a.5.5 0 0 0-.708.708L13.293 11H1.5a.5.5 0 0 0-.5.5m14-7a.5.5 0 0 1-.5.5H2.707l3.147 3.146a.5.5 0 1 1-.708.708l-4-4a.5.5 0 0 1 0-.708l4-4a.5.5 0 0 1 .708.708L2.707 4H14.5a.5.5 0 0 1 .5.5"/>
+                </svg>
+                Traspasos Pendientes
+                {% if traspasos_pendientes|length > 0 %}
+                    <span class="badge bg-danger ms-1">{{ traspasos_pendientes|length }}</span>
+                {% endif %}
+            </button>
+        </li>
+
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-semibold" id="jugadores-admin-tab" data-bs-toggle="tab" data-bs-target="#jugadores-admin-content" type="button" role="tab">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-badge me-1" viewBox="0 0 16 16">
+                <path d="M6.5 2a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1zM11 8a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
+                <path d="M4.5 0A2.5 2.5 0 0 0 2 2.5V14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V2.5A2.5 2.5 0 0 0 11.5 0zM3 2.5A1.5 1.5 0 0 1 4.5 1h7A1.5 1.5 0 0 1 13 2.5v10.795c.423-.045.85-.14 1.283-.266V2.5a2.5 2.5 0 0 0-2.5-2.5h-8A2.5 2.5 0 0 0 1 2.5v10.529c.433.127.86.222 1.283.266z"/>
+                </svg>
+                Control de Jugadores
+            </button>
+        </li>
+
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-semibold" id="categorias-tab" data-bs-toggle="tab" data-bs-target="#categorias-content" type="button" role="tab">Categorías</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-semibold" id="equipos-tab" data-bs-toggle="tab" data-bs-target="#equipos-content" type="button" role="tab">Equipos</button>
+        </li>
+    </ul>
+
+    <!-- Contenido de las pestañas -->
+    <div class="tab-content" id="adminTabContent">
+        
+        <!-- Pestaña 1: Equipos y Delegados -->
+        <div class="tab-pane fade show active" id="equipos-content" role="tabpanel">
+            <div class="card border-0 shadow-sm p-4">
+                <h4 class="mb-3 text-dark fw-bold">Asignación de Delegados</h4>
+                <p class="text-muted small">Asigna los usuarios registrados como delegados oficiales de cada equipo participante.</p>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Equipo</th>
+                                <th>Categoría</th>
+                                <th>Delegado Actual</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for eq in equipos %}
+                            <tr>
+                                <td class="fw-bold">{{ eq.nombre }}</td>
+                                <td>{{ eq.categoria }}</td>
+                                <td>
+                                    {% if eq.delegado_asignado %}
+                                        <span class="badge bg-success">{{ eq.delegado_asignado.nombres }} ({{ eq.delegado_asignado.email }})</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark">Sin Delegado</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <form method="POST" action="{{ url_for('admin.asignar_delegado', equipo_id=eq.id) }}" class="row g-2">
+                                        <div class="col-auto">
+                                            <select name="usuario_id" class="form-select form-select-sm" required>
+                                                <option value="">Seleccionar usuario...</option>
+                                                {% for u in usuarios %}
+                                                <option value="{{ u.id }}" {% if eq.delegado_id == u.id %}selected{% endif %}>
+                                                    {{ u.nombres }} ({{ u.email }})
+                                                </option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="col-auto">
+                                            <button type="submit" class="btn btn-sm btn-dark">Guardar</button>
+                                        </div>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pestaña 2: Usuarios / Comunidad -->
+        <div class="tab-pane fade" id="usuarios-content" role="tabpanel">
+            <div class="card border-0 shadow-sm p-4">
+                <h4 class="mb-3 text-dark fw-bold">Listado General de Usuarios</h4>
+                <p class="text-muted small">Visualiza todos los perfiles registrados en la plataforma y sus roles de acceso.</p>
+
+                <div class="table-responsive">
+                    <table class="table table-striped align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Nombres</th>
+                                <th>Documento</th>
+                                <th>Correo</th>
+                                <th>Teléfono</th>
+                                <th>Rol</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for u in usuarios %}
+                            <tr>
+                                <td>{{ u.nombres }}</td>
+                                <td>{{ u.tipo_documento }}: {{ u.documento }}</td>
+                                <td>{{ u.email }}</td>
+                                <td>{{ u.telefono }}</td>
+                                <td>
+                                    {% if u.rol == 'admin' %}
+                                        <span class="badge bg-danger">Administrador</span>
+                                    {% elif u.rol == 'delegado' %}
+                                        <span class="badge bg-success">Delegado</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Usuario General</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pestaña 3: Configuración del Torneo -->
+        <div class="tab-pane fade" id="config-content" role="tabpanel">
+            <div class="card border-0 shadow-sm p-4 text-center">
+                <h4 class="mb-3 text-dark fw-bold">Gestión del Mercado de Fichajes</h4>
+                <p class="text-muted">Controla si los delegados de los equipos pueden enviar ofertas de traspaso, negociar préstamos o intercambiar jugadores.</p>
+                
+                <div class="my-4">
+                    {% if config.mercado_abierto %}
+                        <span class="badge bg-success fs-5 p-3 px-4 shadow-sm">ESTADO ACTUAL: ABIERTO</span>
+                    {% else %}
+                        <span class="badge bg-danger fs-5 p-3 px-4 shadow-sm">ESTADO ACTUAL: CERRADO</span>
+                    {% endif %}
+                </div>
+
+                <form method="POST" action="{{ url_for('admin.toggle_mercado') }}">
+                    {% if config.mercado_abierto %}
+                        <button type="submit" class="btn btn-outline-danger fw-bold px-5 py-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-circle me-1" viewBox="0 0 16 16">
+                              <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                              <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708"/>
+                            </svg>
+                            Cerrar Mercado de Fichajes
+                        </button>
+                        <p class="text-muted small mt-2">Los delegados ya no podrán hacer nuevas ofertas oficiales.</p>
+                    {% else %}
+                        <button type="submit" class="btn btn-success fw-bold px-5 py-2 shadow-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-circle me-1" viewBox="0 0 16 16">
+                              <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                              <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05"/>
+                            </svg>
+                            Abrir Mercado de Fichajes
+                        </button>
+                        <p class="text-muted small mt-2">Los delegados podrán negociar libremente e intercambiar jugadores.</p>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+
+        <!-- Pestaña 4: Traspasos Pendientes de Validación -->
+            <div class="tab-pane fade" id="traspasos-content" role="tabpanel">
+                <div class="card border-0 shadow-sm p-4">
+                    <h4 class="mb-3 text-dark fw-bold">Validación Final de Fichajes</h4>
+                    <p class="text-muted small">Los delegados ya han negociado y aceptado estos traspasos. Como administrador, da el aval final para mover los jugadores de equipo.</p>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-dark">
+                                <tr>
+                                    hr>
+                                    <th>Jugador</th>
+                                    <th>Equipo Origen</th>
+                                    <th>Equipo Destino</th>
+                                    <th>Tipo / Monto</th>
+                                    <th>Nuevo Contrato Hasta</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for t in traspasos_pendientes %}
+                                <tr>
+                                    <td class="fw-bold">{{ t.jugador.nombre }}</td>
+                                    <td>{{ t.equipo_origen.nombre if t.equipo_origen else 'Agente Libre' }}</td>
+                                    <td class="text-success fw-bold">{{ t.equipo_destino.nombre }}</td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ t.tipo }}</span><br>
+                                        <small>$ {{ "{:,.0f}".format(t.monto or 0).replace(',', '.') }} COP</small>
+                                    </td>
+                                    <td>{{ t.nuevo_fecha_fin or 'Sin cambios' }}</td>
+                                    <td>
+                                        <div class="d-flex gap-2">
+                                            <!-- Botón Aprobar -->
+                                            <form method="POST" action="{{ url_for('admin.resolver_traspaso', traspaso_id=t.id, accion='aprobar') }}">
+                                                <button type="submit" class="btn btn-sm btn-success fw-bold">Aprobar</button>
+                                            </form>
+                                            <!-- Botón Rechazar -->
+                                            <form method="POST" action="{{ url_for('admin.resolver_traspaso', traspaso_id=t.id, accion='rechazar') }}">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger fw-bold">Rechazar</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted py-4">No hay traspasos pendientes de aprobación en este momento.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Pestaña 5: Control Global de Jugadores -->
+            <div class="tab-pane fade" id="jugadores-admin-content" role="tabpanel">
+                <div class="card border-0 shadow-sm p-4">
+                    <h4 class="mb-3 text-dark fw-bold">Listado General de Inscritos</h4>
+                    <p class="text-muted small">Visualiza a todos los jugadores del torneo y reasignales el equipo correspondiente de forma inmediata si aparecen como libres por error.</p>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Documento</th>
+                                    <th>Rol</th>
+                                    <th>Posición</th>
+                                    <th>Equipo Actual</th>
+                                    <th>Cambiar de Equipo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for j in jugadores %}
+                                <tr>
+                                    <td class="fw-bold">{{ j.nombre }}</td>
+                                    <td>{{ j.documento }}</td>
+                                    <td>{{ j.rol_equipo }}</td>
+                                    <td>{{ j.posicion or '-' }}</td>
+                                    <td>
+                                        {% if j.equipo %}
+                                            <span class="badge bg-secondary">{{ j.equipo.nombre }}</span>
+                                        {% else %}
+                                            <span class="badge bg-warning text-dark">Agente Libre</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <form method="POST" action="{{ url_for('admin.reasignar_jugador', jugador_id=j.id) }}" class="row g-2">
+                                            <div class="col-auto">
+                                                <select name="equipo_id" class="form-select form-select-sm" required>
+                                                    <option value="">-- Agente Libre --</option>
+                                                    {% for eq in equipos %}
+                                                    <option value="{{ eq.id }}" {% if j.equipo_id == eq.id %}selected{% endif %}>
+                                                        {{ eq.nombre }}
+                                                    </option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            <div class="col-auto">
+                                                <button type="submit" class="btn btn-sm btn-dark">Actualizar</button>
+                                            </div>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted py-4">No hay jugadores registrados en el sistema todavía.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+
+                        <!-- SECCIÓN CATEGORÍAS -->
+            <div class="tab-pane fade" id="categorias-content" role="tabpanel">
+                <div class="card border-0 shadow-sm p-4 mb-4">
+                    <h4 class="mb-3 fw-bold">Gestionar Categorías</h4>
+                    <form action="{{ url_for('admin.crear_categoria') }}" method="POST" class="row g-2 mb-4">
+                        <div class="col-md-8">
+                            <input type="text" name="nombre" class="form-control" placeholder="Nombre de la nueva categoría (Ej: A, Sub-20, Senior)" required>
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-dark w-100">Crear Categoría</button>
+                        </div>
+                    </form>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for cat in categorias %}
+                                <tr>
+                                    <td>{{ cat.id }}</td>
+                                    <td>
+                                        <form action="{{ url_for('admin.editar_categoria', id=cat.id) }}" method="POST" class="d-flex gap-2">
+                                            <input type="text" name="nombre" value="{{ cat.nombre }}" class="form-control form-control-sm" required>
+                                            <button type="submit" class="btn btn-sm btn-primary">Guardar</button>
+                                        </form>
+                                    </td>
+                                    <td>
+                                        <form action="{{ url_for('admin.eliminar_categoria', id=cat.id) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Eliminar categoría? Los equipos asociados quedarán sin categoría.');">
+                                            <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr><td colspan="3" class="text-center text-muted">No hay categorías registradas.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN EQUIPOS -->
+            <div class="tab-pane fade" id="equipos-content" role="tabpanel">
+                <div class="card border-0 shadow-sm p-4 mb-4">
+                    <h4 class="mb-3 fw-bold">Gestionar Equipos</h4>
+                    <form action="{{ url_for('admin.crear_equipo') }}" method="POST" class="row g-2 mb-4">
+                        <div class="col-md-5">
+                            <input type="text" name="nombre" class="form-control" placeholder="Nombre del equipo" required>
+                        </div>
+                        <div class="col-md-4">
+                            <select name="categoria_id" class="form-select">
+                                <option value="">-- Sin Categoría --</option>
+                                {% for cat in categorias %}
+                                <option value="{{ cat.id }}">{{ cat.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <button type="submit" class="btn btn-dark w-100">Crear Equipo</button>
+                        </div>
+                    </form>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Nombre del Equipo</th>
+                                    <th>Categoría</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for eq in equipos %}
+                                <tr>
+                                    <td>
+                                        <form action="{{ url_for('admin.editar_equipo', id=eq.id) }}" method="POST" class="row g-2">
+                                            <div class="col-md-6">
+                                                <input type="text" name="nombre" value="{{ eq.nombre }}" class="form-control form-control-sm" required>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <select name="categoria_id" class="form-select form-select-sm">
+                                                    <option value="">-- Sin Categoría --</option>
+                                                    {% for cat in categorias %}
+                                                    <option value="{{ cat.id }}" {% if eq.categoria_id == cat.id %}selected{% endif %}>{{ cat.nombre }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <button type="submit" class="btn btn-sm btn-primary w-100">OK</button>
+                                            </div>
+                                        </form>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ eq.categoria.nombre if eq.categoria else 'Sin Categoría' }}</span>
+                                    </td>
+                                    <td>
+                                        <form action="{{ url_for('admin.eliminar_equipo', id=eq.id) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Estás seguro de eliminar este equipo? Se borrarán sus jugadores asociados.');">
+                                            <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr><td colspan="3" class="text-center text-muted">No hay equipos registrados.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+    </div>
+
+</div>
+{% endblock %}

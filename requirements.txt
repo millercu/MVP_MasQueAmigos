@@ -1,0 +1,9 @@
+Flask==3.0.0
+Flask-SQLAlchemy==3.1.1
+psycopg2-binary
+Authlib==1.2.1
+pandas
+openpyxl==3.1.2
+python-dotenv==1.0.0
+requests
+

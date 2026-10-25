@@ -1,0 +1,88 @@
+/* =========================================
+   VARIABLES GLOBALES (Temática Bagadó)
+   ========================================= */
+:root {
+    --bagado-verde-primario: #2b7a0b;
+    --bagado-verde-oscuro: #1b4d06;
+    --bagado-amarillo-oro: #fbbc05;
+    --bagado-blanco: #ffffff;
+    --bagado-gris-fondo: #f4f7f6;
+    --bagado-texto-oscuro: #333333;
+    --bagado-borde: #e0e0e0;
+}
+
+/* =========================================
+   ESTILOS BASE
+   ========================================= */
+body {
+    background-color: var(--bagado-gris-fondo);
+    color: var(--bagado-texto-oscuro);
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+main {
+    flex: 1;
+}
+
+/* =========================================
+   COMPONENTES: NAVEGACIÓN Y FOOTER
+   ========================================= */
+.navbar-bagado {
+    background-color: var(--bagado-verde-primario);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.navbar-bagado .navbar-brand,
+.navbar-bagado .nav-link {
+    color: var(--bagado-blanco) !important;
+    font-weight: 500;
+}
+
+.navbar-bagado .nav-link:hover {
+    color: var(--bagado-amarillo-oro) !important;
+}
+
+.footer-bagado {
+    background-color: var(--bagado-verde-oscuro);
+    color: var(--bagado-blanco);
+    text-align: center;
+    padding: 1.5rem 0;
+    margin-top: 3rem;
+}
+
+/* =========================================
+   COMPONENTES: BOTONES Y TARJETAS
+   ========================================= */
+.btn-primario {
+    background-color: var(--bagado-verde-primario);
+    color: var(--bagado-blanco);
+    border: none;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+.btn-primario:hover {
+    background-color: var(--bagado-verde-oscuro);
+    color: var(--bagado-blanco);
+}
+
+.btn-secundario {
+    background-color: var(--bagado-amarillo-oro);
+    color: var(--bagado-texto-oscuro);
+    border: none;
+    font-weight: bold;
+}
+
+.btn-secundario:hover {
+    background-color: #e5a904;
+}
+
+.card-bagado {
+    background-color: var(--bagado-blanco);
+    border: 1px solid var(--bagado-borde);
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}

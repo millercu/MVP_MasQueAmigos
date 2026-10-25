@@ -1,0 +1,26 @@
+# Entorno virtual
+venv/
+ENV/
+env/
+
+# Archivos de caché de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Base de datos SQLite local (para no subir los datos de desarrollo/Excel al repositorio público)
+*.db
+*.sqlite
+instance/
+
+# Archivos de configuración de IDEs
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# Flask / Alembic temporales
+migrations/*.pyc

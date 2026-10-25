@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Mercado de Fichajes - Torneo Bagadó{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark">Historial Oficial de Fichajes</h2>
+            <p class="text-muted mb-0">Registro público de todas las transferencias oficiales avaladas en la Copa Más Que Amigos.</p>
+        </div>
+        <div>
+            {% if config and config.mercado_abierto %}
+                <span class="badge bg-success shadow-sm px-3 py-2">MERCADO ABIERTO</span>
+            {% else %}
+                <span class="badge bg-danger shadow-sm px-3 py-2">MERCADO CERRADO</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm p-4">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Jugador Traspasado</th>
+                        <th>Equipo de Origen</th>
+                        <th>Equipo de Destino</th>
+                        <th>Tipo de Operación</th>
+                        <th>Monto / Acuerdo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in traspasos %}
+                    <tr>
+                        <td>{{ t.fecha_solicitud.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td class="fw-bold">{{ t.jugador.nombre }}</td>
+                        <td>{{ t.equipo_origen.nombre if t.equipo_origen else 'Agente Libre' }}</td>
+                        <td class="text-success fw-bold">{{ t.equipo_destino.nombre }}</td>
+                        <td>
+                            <span class="badge bg-secondary">{{ t.tipo }}</span>
+                        </td>
+                        <td>
+                            $ {{ "{:,.0f}".format(t.monto or 0).replace(',', '.') }} COP
+                            {% if t.jugador_intercambio %}
+                                <br><small class="text-muted">Incluyó intercambio por {{ t.jugador_intercambio.nombre }}</small>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-5">
+                            Aún no se han registrado fichajes completados en este torneo.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

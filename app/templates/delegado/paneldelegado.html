@@ -1,0 +1,383 @@
+{% extends "base.html" %}
+{% block title %}Panel de Delegado - Torneo Bagadó{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    
+    {% if equipo %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark">Mi Panel de Equipo</h2>
+            <p class="text-muted mb-0">Gestión de la plantilla: <span class="text-success fw-bold">{{ equipo.nombre }}</span> (Categoría: {{ equipo.categoria }})</p>
+        </div>
+        <div>
+            {% if config and config.mercado_abierto %}
+                <span class="badge bg-success shadow-sm px-3 py-2">MERCADO ABIERTO</span>
+            {% else %}
+                <span class="badge bg-danger shadow-sm px-3 py-2">MERCADO CERRADO</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Sistema de pestañas (Tabs) -->
+    <ul class="nav nav-tabs mb-4" id="delegadoTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-semibold" id="plantilla-tab" data-bs-toggle="tab" data-bs-target="#plantilla-content" type="button" role="tab">Mi Plantilla</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-semibold text-primary" id="mercado-tab" data-bs-toggle="tab" data-bs-target="#mercado-content" type="button" role="tab">Ventana de Fichajes</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-semibold" id="negociaciones-tab" data-bs-toggle="tab" data-bs-target="#negociaciones-content" type="button" role="tab">Mis Negociaciones</button>
+        </li>
+    </ul>
+
+    <!-- Contenido de las pestañas -->
+    <div class="tab-content" id="delegadoTabContent">
+        
+        <!-- PESTAÑA 1: MI PLANTILLA -->
+        <div class="tab-pane fade show active" id="plantilla-content" role="tabpanel">
+            <div class="card border-0 shadow-sm p-4">
+                <h4 class="mb-3 text-dark fw-bold">Jugadores Inscritos</h4>
+                
+                <!-- Formulario real para agregar jugador -->
+            <div class="card border-0 shadow-sm p-4 mb-4 bg-light">
+                <h5 class="mb-3 text-dark fw-bold">Inscribir Nuevo Integrante</h5>
+                <form method="POST" action="{{ url_for('delegado.agregar_jugador') }}">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label fw-semibold small">Nombre Completo</label>
+                            <input type="text" name="nombre" class="form-control form-control-sm" required>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label fw-semibold small">N° Documento</label>
+                            <input type="text" name="documento" class="form-control form-control-sm" required>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label fw-semibold small">EPS (Opcional)</label>
+                            <input type="text" name="eps" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label fw-semibold small">Rol en Equipo</label>
+                            <select name="rol_equipo" class="form-select form-select-sm" required>
+                                <option value="Deportista">Deportista</option>
+                                <option value="Cuerpo Tecnico">Cuerpo Técnico</option>
+                                <option value="Delegado">Delegado</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label fw-semibold small">Posición</label>
+                            <input type="text" name="posicion" class="form-control form-control-sm" placeholder="Ej. Delantero">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label fw-semibold small">Inicio Contrato</label>
+                            <input type="date" name="fecha_inicio" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label fw-semibold small">Fin Contrato</label>
+                            <input type="date" name="fecha_fin" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label fw-semibold small">Cláusula Rescisión ($)</label>
+                            <input type="text" name="clausula_rescision" class="form-control form-control-sm" placeholder="Ej: 2.000.000" value="0">                        </div>
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <button type="submit" class="btn btn-success fw-bold px-4">Registrar en Plantilla</button>
+                    </div>
+                </form>
+            </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Documento</th>
+                                <th>EPS</th>
+                                <th>Rol</th>
+                                <th>Posición</th>
+                                <th>Inicio Contrato</th>
+                                <th>Fin Contrato</th>
+                                <th>Cláusula</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for j in jugadores %}
+                            <tr>
+                                <td class="fw-bold">{{ j.nombre }}</td>
+                                <td>{{ j.documento }}</td>
+                                <td>{{ j.eps or 'N/A' }}</td>
+                                <td>{{ j.rol_equipo }}</td>
+                                <td>{{ j.posicion or '-' }}</td>
+                                <td>{{ j.fecha_inicio or '-' }}</td>
+                                <td>{{ j.fecha_fin or 'Sin definir' }}</td>
+                                <td>$ {{ "{:,.0f}".format(j.clausula_rescision or 0).replace(',', '.') }} COP</td>                                <td>
+                                    <div class="d-flex gap-1">
+                                        <!-- Botón Editar (Abre Modal) -->
+                                        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editModal{{ j.id }}" title="Editar">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16">
+                                              <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
+                                            </svg>
+                                        </button>
+                                        
+                                        <!-- Botón Eliminar -->
+                                        <form method="POST" action="{{ url_for('delegado.eliminar_jugador', jugador_id=j.id) }}" style="display:inline;" onsubmit="return confirm('¿Estás seguro de eliminar este registro?');">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+                                                  <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z"/>
+                                                  <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z"/>
+                                                </svg>
+                                            </button>
+                                        </form>
+                                    </div>
+
+                                    <!-- Modal de Edición para este jugador -->
+                                    <div class="modal fade" id="editModal{{ j.id }}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog modal-lg">
+                                            <div class="modal-content">
+                                                <form method="POST" action="{{ url_for('delegado.editar_jugador', jugador_id=j.id) }}">
+                                                    <div class="modal-header bg-dark text-white">
+                                                        <h5 class="modal-title fw-bold">Editar a {{ j.nombre }}</h5>
+                                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body text-start">
+                                                        <div class="row">
+                                                            <div class="col-md-6 mb-3">
+                                                                <label class="form-label fw-semibold small">Nombre Completo</label>
+                                                                <input type="text" name="nombre" class="form-control form-control-sm" value="{{ j.nombre }}" required>
+                                                            </div>
+                                                            <div class="col-md-6 mb-3">
+                                                                <label class="form-label fw-semibold small">N° Documento</label>
+                                                                <input type="text" name="documento" class="form-control form-control-sm" value="{{ j.documento }}" required>
+                                                            </div>
+                                                            <div class="col-md-6 mb-3">
+                                                                <label class="form-label fw-semibold small">EPS (Opcional)</label>
+                                                                <input type="text" name="eps" class="form-control form-control-sm" value="{{ j.eps or '' }}">
+                                                            </div>
+                                                            <div class="col-md-6 mb-3">
+                                                                <label class="form-label fw-semibold small">Rol en Equipo</label>
+                                                                <select name="rol_equipo" class="form-select form-select-sm" required>
+                                                                    <option value="Deportista" {% if j.rol_equipo == 'Deportista' %}selected{% endif %}>Deportista</option>
+                                                                    <option value="Cuerpo Tecnico" {% if j.rol_equipo == 'Cuerpo Tecnico' %}selected{% endif %}>Cuerpo Técnico</option>
+                                                                    <option value="Delegado" {% if j.rol_equipo == 'Delegado' %}selected{% endif %}>Delegado</option>
+                                                                </select>
+                                                            </div>
+                                                            <div class="col-md-6 mb-3">
+                                                                <label class="form-label fw-semibold small">Posición</label>
+                                                                <input type="text" name="posicion" class="form-control form-control-sm" value="{{ j.posicion or '' }}">
+                                                            </div>
+                                                            <div class="col-md-6 mb-3">
+                                                                <label class="form-label fw-semibold small">Cláusula Rescisión ($)</label>
+                                                                <input type="text" name="clausula_rescision" class="form-control form-control-sm" value="{{ '{:,.0f}'.format(j.clausula_rescision or 0).replace(',', '.') }}">                                                            </div>
+                                                            <div class="col-md-6 mb-3">
+                                                                <label class="form-label fw-semibold small">Inicio Contrato</label>
+                                                                <input type="date" name="fecha_inicio" class="form-control form-control-sm" value="{{ j.fecha_inicio or '' }}">
+                                                            </div>
+                                                            <div class="col-md-6 mb-3">
+                                                                <label class="form-label fw-semibold small">Fin Contrato</label>
+                                                                <input type="date" name="fecha_fin" class="form-control form-control-sm" value="{{ j.fecha_fin or '' }}">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                        <button type="submit" class="btn btn-primary fw-bold">Guardar Cambios</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="9" class="text-center text-muted py-3">No hay jugadores inscritos en este equipo.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- PESTAÑA 2: MERCADO DE FICHAJES -->
+        <div class="tab-pane fade" id="mercado-content" role="tabpanel">
+            <div class="card border-0 shadow-sm p-4">
+                <h4 class="mb-3 text-dark fw-bold">Jugadores Disponibles</h4>
+                
+                {% if config and config.mercado_abierto %}
+                    <p class="text-muted small">Explora jugadores de otros equipos o agentes libres y envíales una oferta formal.</p>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-striped align-middle">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Posición</th>
+                                    <th>Equipo Actual</th>
+                                    <th>Cláusula de Rescisión</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for j in mercado %}
+                                <tr>
+                                    <td class="fw-bold">{{ j.nombre }}</td>
+                                    <td>{{ j.posicion or '-' }}</td>
+                                    <td>
+                                        {% if j.equipo %}
+                                            <span class="badge bg-secondary">{{ j.equipo.nombre }}</span>
+                                        {% else %}
+                                            <span class="badge bg-success">Agente Libre</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>${{ j.clausula_rescision or 0 }}</td>
+                                    <td>
+                                        <!-- Botón para abrir el Modal de Oferta -->
+                                        <button type="button" class="btn btn-sm btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#ofertaModal{{ j.id }}">
+                                            Hacer Oferta
+                                        </button>
+                                        
+                                        <!-- Modal de Oferta Fichaje -->
+                                        <div class="modal fade" id="ofertaModal{{ j.id }}" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <form method="POST" action="{{ url_for('delegado.ofertar', jugador_id=j.id) }}">
+                                                        <div class="modal-header bg-dark text-white">
+                                                            <h5 class="modal-title fw-bold">Negociar por {{ j.nombre }}</h5>
+                                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body text-start">
+                                                            <p class="text-muted small">Cláusula actual: ${{ j.clausula_rescision or 0 }} | Equipo: {{ j.equipo.nombre if j.equipo else 'Libre' }}</p>
+                                                            
+                                                            <div class="mb-3">
+                                                                <label class="form-label fw-bold">Tipo de Traspaso</label>
+                                                                <select name="tipo" class="form-select" required>
+                                                                    <option value="Compra">Compra Definitiva</option>
+                                                                    <option value="Prestamo">Préstamo Temporal</option>
+                                                                </select>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label class="form-label fw-bold">Monto Ofertado ($)</label>
+                                                                <input type="number" step="0.01" name="monto" class="form-control" required placeholder="Ej: 1000000">
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label class="form-label fw-bold">Duración Nuevo Contrato (Hasta)</label>
+                                                                <input type="date" name="nuevo_fecha_fin" class="form-control" required>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label class="form-label fw-bold">Jugador como parte de pago (Opcional)</label>
+                                                                <select name="jugador_intercambio_id" class="form-select">
+                                                                    <option value="">-- Sin intercambio --</option>
+                                                                    {% for mi_j in jugadores %}
+                                                                        {% if mi_j.rol_equipo == 'Deportista' %}
+                                                                            <option value="{{ mi_j.id }}">{{ mi_j.nombre }} ({{ mi_j.posicion or 'Sin posición' }})</option>
+                                                                        {% endif %}
+                                                                    {% endfor %}
+                                                                </select>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label class="form-label fw-bold">Mensaje / Condiciones Adicionales</label>
+                                                                <textarea name="mensaje" class="form-control" rows="2" placeholder="Notas de la oferta..."></textarea>
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                            <button type="submit" class="btn btn-primary fw-bold">Enviar Oferta Oficial</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-danger text-center">
+                        <h5 class="fw-bold mb-0">El mercado de fichajes está cerrado.</h5>
+                        <p class="mb-0 small">No se pueden realizar negociaciones hasta que el Administrador abra el mercado.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- PESTAÑA 3: MIS NEGOCIACIONES -->
+        <div class="tab-pane fade" id="negociaciones-content" role="tabpanel">
+            <div class="row">
+                <!-- Ofertas Recibidas -->
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm p-3 h-100">
+                        <h5 class="fw-bold text-dark border-bottom pb-2">Ofertas Recibidas</h5>
+                        {% for oferta in ofertas_recibidas %}
+                            <div class="alert alert-light border shadow-sm mt-3">
+                                <h6 class="fw-bold text-primary">{{ oferta.equipo_destino.nombre }} quiere a {{ oferta.jugador.nombre }}</h6>
+                                <ul class="list-unstyled small mb-3">
+                                    <li><strong>Tipo:</strong> {{ oferta.tipo }}</li>
+                                    <li><strong>Monto Ofertado:</strong> ${{ oferta.monto }}</li>
+                                    {% if oferta.jugador_intercambio %}
+                                    <li><strong>Intercambio:</strong> Te ofrecen a {{ oferta.jugador_intercambio.nombre }} ({{ oferta.jugador_intercambio.posicion }})</li>
+                                    {% endif %}
+                                    {% if oferta.mensaje_negociacion %}
+                                    <li><strong>Mensaje:</strong> "{{ oferta.mensaje_negociacion }}"</li>
+                                    {% endif %}
+                                    <li><strong>Estado actual:</strong> <span class="badge bg-warning text-dark">{{ oferta.estado }}</span></li>
+                                </ul>
+                                
+                                <!-- Botones de Acción solo si está Pendiente -->
+                                {% if oferta.estado == 'Pendiente' %}
+                                <div class="d-flex gap-2">
+                                    <form method="POST" action="{{ url_for('delegado.responder_oferta', oferta_id=oferta.id) }}">
+                                        <input type="hidden" name="accion" value="aceptar">
+                                        <button type="submit" class="btn btn-sm btn-success fw-bold">Aceptar Traspaso</button>
+                                    </form>
+                                    <form method="POST" action="{{ url_for('delegado.responder_oferta', oferta_id=oferta.id) }}">
+                                        <input type="hidden" name="accion" value="rechazar">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger fw-bold">Rechazar</button>
+                                    </form>
+                                </div>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted small mt-2">No has recibido ofertas de otros equipos.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- Ofertas Enviadas -->
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm p-3 h-100">
+                        <h5 class="fw-bold text-dark border-bottom pb-2">Ofertas Enviadas</h5>
+                        {% for oferta in ofertas_enviadas %}
+                            <div class="alert alert-light border shadow-sm mt-3">
+                                <h6 class="fw-bold">Hiciste oferta por {{ oferta.jugador.nombre }}</h6>
+                                <ul class="list-unstyled small mb-2">
+                                    <li><strong>Equipo Destino:</strong> {{ oferta.equipo_origen.nombre if oferta.equipo_origen else 'Agente Libre' }}</li>
+                                    <li><strong>Tipo:</strong> {{ oferta.tipo }}</li>
+                                    <li><strong>Monto:</strong> ${{ oferta.monto }}</li>
+                                    <li><strong>Estado:</strong> <span class="badge bg-info text-dark">{{ oferta.estado }}</span></li>
+                                </ul>
+                            </div>
+                        {% else %}
+                            <p class="text-muted small mt-2">No has enviado ninguna oferta aún.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    {% else %}
+    <div class="alert alert-warning text-center p-5 shadow-sm">
+        <h4 class="fw-bold">Sin Equipo Asignado</h4>
+        <p class="mb-0">Actualmente no tienes ningún equipo asignado. Comunícate con el Administrador.</p>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

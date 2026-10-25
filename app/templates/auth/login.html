@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Iniciar Sesión - Torneo Bagadó{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card-bagado p-4 shadow-sm">
+            <h3 class="mb-3 text-center text-success fw-bold">Iniciar Sesión</h3>
+            
+            with messages = get_flashed_messages(with_categories=true)
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            endwith
+
+            <form method="POST">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Correo Electrónico</label>
+                    <input type="email" name="email" class="form-control" required placeholder="correo@ejemplo.com">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Contraseña</label>
+                    <input type="password" name="password" class="form-control" required placeholder="Tu contraseña">
+                </div>
+                <button type="submit" class="btn btn-primario w-100 py-2 fw-bold">Entrar</button>
+            </form>
+            <div class="text-center mt-3">
+                <a href="{{ url_for('auth.registro') }}" class="text-decoration-none text-success">¿No tienes cuenta? Regístrate aquí</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

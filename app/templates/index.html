@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Inicio - Torneo de Fútbol Bagadó{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    
+    <!-- Hero Section / Banner de Bienvenida -->
+    <div class="p-5 mb-4 bg-success text-white rounded-3 shadow-sm text-center">
+        <div class="container-fluid py-3">
+            <h1 class="display-5 fw-bold">Copa Más Que Amigos</h1>
+            <p class="col-md-8 fs-4 mx-auto">El torneo oficial que une a nuestra comunidad a través del deporte, la pasión y el talento local.</p>
+            
+            <!-- Estadísticas rápidas -->
+            <div class="row my-4 justify-content-center">
+                <div class="col-auto bg-white bg-opacity-2_5 p-3 rounded mx-2">
+                    <h3 class="fw-bold mb-0">{{ total_equipos }}</h3>
+                    <small>Equipos Inscritos</small>
+                </div>
+                <div class="col-auto bg-white bg-opacity-2_5 p-3 rounded mx-2">
+                    <h3 class="fw-bold mb-0">{{ total_jugadores }}</h3>
+                    <small>Jugadores y Delegados</small>
+                </div>
+            </div>
+
+            {% if not session.get('user_id') %}
+            <div class="mt-4">
+                <a href="{{ url_for('auth.login') }}" class="btn btn-light btn-lg px-4 me-2 fw-bold text-success">Iniciar Sesión</a>
+                <a href="{{ url_for('auth.registro') }}" class="btn btn-outline-light btn-lg px-4 fw-bold">Registrarse</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Sección de Equipos Inscritos -->
+    <div class="card-bagado p-4 shadow-sm mb-4">
+        <h3 class="mb-3 text-dark fw-bold">Equipos Participantes</h3>
+        <p class="text-muted">Conoce los equipos oficiales que están compitiendo en el torneo.</p>
+
+        <div class="row">
+            {% for eq in equipos %}
+            <div class="col-md-4 mb-3">
+                <div class="card h-100 border-0 shadow-sm p-3">
+                    <div class="card-body">
+                        <h5 class="card-title fw-bold text-success">{{ eq.nombre }}</h5>
+                        <p class="card-text text-muted small mb-2">Categoría: {{ eq.categoria }}</p>
+                        <span class="badge bg-secondary">Plantilla Activa</span>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-12 text-center py-4">
+                <p class="text-muted">Aún no hay equipos registrados en el sistema.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}
