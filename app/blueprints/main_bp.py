@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template
-from app.models import Traspaso, Configuracion, Categoria
+from app.models import Traspaso, Configuracion, Categoria, Partido
 
 # Asegúrate de que esta línea exista (nombre del Blueprint)
 main_bp = Blueprint('main', __name__)
@@ -18,4 +18,5 @@ def historial_fichajes():
 def index():
     # Obtenemos todas las categorías con sus equipos relacionados
     categorias = Categoria.query.all()
-    return render_template('index.html', categorias=categorias)
+    partidos_jugados = Partido.query.filter_by(estado='Jugado').all()
+    return render_template('index.html', categorias=categorias, partidos_jugados=partidos_jugados)

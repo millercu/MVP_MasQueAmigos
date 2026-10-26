@@ -95,3 +95,56 @@ class Configuracion(db.Model):
     __tablename__ = 'configuracion'
     id = db.Column(db.Integer, primary_key=True)
     mercado_abierto = db.Column(db.Boolean, default=False)
+
+
+class Partido(db.Model):
+    __tablename__ = 'partido'
+    id = db.Column(db.Integer, primary_key=True)
+    categoria_id = db.Column(db.Integer, db.ForeignKey('categoria.id'), nullable=False)
+
+    categoria = db.relationship('Categoria', foreign_keys=[categoria_id])
+    
+    # Fase: 'Repechaje', 'Semifinal 1', 'Semifinal 2', 'Tercer Puesto', 'Final'
+    fase = db.Column(db.String(50), nullable=False) 
+    
+    # Equipos (Pueden ser nulos inicialmente si están esperando rival)
+    equipo_local_id = db.Column(db.Integer, db.ForeignKey('equipo.id'), nullable=True)
+    equipo_visitante_id = db.Column(db.Integer, db.ForeignKey('equipo.id'), nullable=True)
+    
+    # Textos temporales (Ej: "Ganador Semifinal 1", "Perdedor Semifinal 2")
+    info_local = db.Column(db.String(100), nullable=True)
+    info_visitante = db.Column(db.String(100), nullable=True)
+    
+    fecha = db.Column(db.String(20), nullable=True) # El admin la asigna después
+    hora = db.Column(db.String(10), nullable=True)
+    cancha = db.Column(db.String(100), nullable=True)
+    
+    estado = db.Column(db.String(20), default='Pendiente') # Pendiente, Jugado
+    goles_local = db.Column(db.Integer, default=0)
+    goles_visitante = db.Column(db.Integer, default=0)
+    penales_local = db.Column(db.Integer, nullable=True)
+    penales_visitante = db.Column(db.Integer, nullable=True)
+    
+    # LLAVES DE PROGRESIÓN AUTOMÁTICA
+    partido_siguiente_ganador_id = db.Column(db.Integer, db.ForeignKey('partido.id'), nullable=True)
+    partido_siguiente_perdedor_id = db.Column(db.Integer, db.ForeignKey('partido.id'), nullable=True)
+
+    equipo_local = db.relationship('Equipo', foreign_keys=[equipo_local_id])
+    equipo_visitante = db.relationship('Equipo', foreign_keys=[equipo_visitante_id])
+
+
+class EstadisticaPartido(db.Model):
+    __tablename__ = 'estadistica_partido'
+    id = db.Column(db.Integer, primary_key=True)
+    partido_id = db.Column(db.Integer, db.ForeignKey('partido.id'), nullable=False)
+    jugador_id = db.Column(db.Integer, db.ForeignKey('jugador.id'), nullable=False)
+    equipo_id = db.Column(db.Integer, db.ForeignKey('equipo.id'), nullable=False)
+    
+    goles = db.Column(db.Integer, default=0)
+    asistencias = db.Column(db.Integer, default=0)
+    amarillas = db.Column(db.Integer, default=0)
+    rojas = db.Column(db.Integer, default=0)
+    
+    partido = db.relationship('Partido', backref=db.backref('estadisticas', cascade='all, delete-orphan'))
+    jugador = db.relationship('Jugador', backref='estadisticas')
+    equipo = db.relationship('Equipo', foreign_keys=[equipo_id])

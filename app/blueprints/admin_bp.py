@@ -1,7 +1,8 @@
+import random
 from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from app.extensions import db
-from app.models import Usuario, Equipo, Configuracion, Traspaso, Jugador, Categoria
+from app.models import Usuario, Equipo, Configuracion, Traspaso, Jugador, Categoria, Partido
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -17,6 +18,8 @@ def panel():
     categorias = Categoria.query.all() # <-- ASEGÚRATE DE PASAR ESTO
     config = Configuracion.query.first()
     traspasos_pendientes = Traspaso.query.filter_by(estado='Pendiente_Admin').all()
+
+    partidos = Partido.query.all()
     
     return render_template('admin/paneladmin.html', 
                            usuarios=usuarios, 
@@ -24,7 +27,8 @@ def panel():
                            jugadores=jugadores,
                            categorias=categorias, # <-- AQUÍ
                            config=config,
-                           traspasos_pendientes=traspasos_pendientes)
+                           traspasos_pendientes=traspasos_pendientes,
+                           partidos=partidos)
 
 @admin_bp.route('/categoria/crear', methods=['POST'])
 def crear_categoria():
@@ -188,3 +192,240 @@ def asignar_delegado(equipo_id):
         flash(f'Se removió el delegado del equipo {equipo.nombre}.', 'info')
         
     return redirect(url_for('admin.panel'))
+
+
+@admin_bp.route('/generar-fixture/<int:categoria_id>', methods=['POST'])
+def generar_fixture(categoria_id):
+    if session.get('user_rol') != 'admin':
+        return redirect(url_for('main.index'))
+        
+    categoria = Categoria.query.get_or_404(categoria_id)
+    equipos = Equipo.query.filter_by(categoria_id=categoria_id).all()
+    
+    # Validar que no exista un fixture previo
+    if Partido.query.filter_by(categoria_id=categoria_id).first():
+        flash(f'El fixture para {categoria.nombre} ya fue generado anteriormente.', 'danger')
+        return redirect(url_for('admin.panel'))
+
+    # CATEGORÍA FEMENINA (Semifinal Directa: Requiere exactamente 4 equipos)
+    if len(equipos) == 4:
+        random.shuffle(equipos) # Sorteo aleatorio
+        
+        # Crear la Final y Tercer Puesto vacíos primero para poder enlazarlos
+        final = Partido(categoria_id=categoria.id, fase='Final', info_local='Ganador Semi 1', info_visitante='Ganador Semi 2')
+        tercer_puesto = Partido(categoria_id=categoria.id, fase='Tercer Puesto', info_local='Perdedor Semi 1', info_visitante='Perdedor Semi 2')
+        db.session.add_all([final, tercer_puesto])
+        db.session.commit() # Guardar para obtener sus IDs
+        
+        # Crear Semifinales y conectarlas a la final y tercer puesto
+        semi1 = Partido(categoria_id=categoria.id, fase='Semifinal 1', equipo_local_id=equipos[0].id, equipo_visitante_id=equipos[1].id,
+                        partido_siguiente_ganador_id=final.id, partido_siguiente_perdedor_id=tercer_puesto.id)
+        semi2 = Partido(categoria_id=categoria.id, fase='Semifinal 2', equipo_local_id=equipos[2].id, equipo_visitante_id=equipos[3].id,
+                        partido_siguiente_ganador_id=final.id, partido_siguiente_perdedor_id=tercer_puesto.id)
+        
+        db.session.add_all([semi1, semi2])
+        db.session.commit()
+        flash(f'Fixture generado con éxito para {categoria.nombre} (Sorteo Semifinal Directa).', 'success')
+
+    # CATEGORÍA MASCULINA (Repechaje: Requiere exactamente 5 equipos)
+    elif len(equipos) == 5:
+        # El formulario enviará los IDs del 4to y 5to puesto para el repechaje
+        id_repechaje_1 = int(request.form.get('equipo_4_id'))
+        id_repechaje_2 = int(request.form.get('equipo_5_id'))
+        
+        if not id_repechaje_1 or not id_repechaje_2 or id_repechaje_1 == id_repechaje_2:
+            flash('Debes seleccionar dos equipos distintos para el partido de repechaje.', 'danger')
+            return redirect(url_for('admin.panel'))
+            
+        eq_repechaje = [e for e in equipos if e.id in [id_repechaje_1, id_repechaje_2]]
+        eq_semis = [e for e in equipos if e.id not in [id_repechaje_1, id_repechaje_2]]
+        
+        random.shuffle(eq_semis) # Sorteo aleatorio de los 3 restantes
+        
+        # Crear Final y Tercer Puesto
+        final = Partido(categoria_id=categoria.id, fase='Final', info_local='Ganador Semi 1', info_visitante='Ganador Semi 2')
+        tercer_puesto = Partido(categoria_id=categoria.id, fase='Tercer Puesto', info_local='Perdedor Semi 1', info_visitante='Perdedor Semi 2')
+        db.session.add_all([final, tercer_puesto])
+        db.session.commit()
+        
+        # Crear Semifinales conectadas
+        semi1 = Partido(categoria_id=categoria.id, fase='Semifinal 1', equipo_local_id=eq_semis[0].id, equipo_visitante_id=eq_semis[1].id,
+                        partido_siguiente_ganador_id=final.id, partido_siguiente_perdedor_id=tercer_puesto.id)
+        
+        # Semifinal 2 espera al ganador del repechaje
+        semi2 = Partido(categoria_id=categoria.id, fase='Semifinal 2', equipo_local_id=eq_semis[2].id, info_visitante='Ganador Repechaje',
+                        partido_siguiente_ganador_id=final.id, partido_siguiente_perdedor_id=tercer_puesto.id)
+        db.session.add_all([semi1, semi2])
+        db.session.commit()
+        
+        # Crear Repechaje conectado a la Semifinal 2
+        repechaje = Partido(categoria_id=categoria.id, fase='Repechaje', equipo_local_id=eq_repechaje[0].id, equipo_visitante_id=eq_repechaje[1].id,
+                            partido_siguiente_ganador_id=semi2.id)
+        db.session.add(repechaje)
+        db.session.commit()
+        
+        flash(f'Fixture generado con éxito para {categoria.nombre} (Formato Repechaje).', 'success')
+        
+    else:
+        flash(f'La categoría {categoria.nombre} tiene {len(equipos)} equipos. Se requieren exactamente 4 o 5 equipos para generar un fixture válido.', 'warning')
+
+    return redirect(url_for('admin.panel'))
+
+@admin_bp.route('/partido/programar/<int:partido_id>', methods=['POST'])
+def programar_partido(partido_id):
+    if session.get('user_rol') != 'admin':
+        return redirect(url_for('main.index'))
+        
+    partido = Partido.query.get_or_404(partido_id)
+    
+    # Recibimos los datos del formulario
+    partido.fecha = request.form.get('fecha')
+    partido.hora = request.form.get('hora')
+    partido.cancha = request.form.get('cancha')
+    
+    db.session.commit()
+    flash('Partido programado con éxito.', 'success')
+    return redirect(url_for('admin.panel'))
+
+
+from app.models import Usuario, Equipo, Configuracion, Traspaso, Jugador, Categoria, Partido, EstadisticaPartido
+
+@admin_bp.route('/partido/acta/<int:partido_id>', methods=['GET', 'POST'])
+def acta_partido(partido_id):
+    if session.get('user_rol') != 'admin':
+        return redirect(url_for('main.index'))
+        
+    partido = Partido.query.get_or_404(partido_id)
+
+    if not partido.fecha or not partido.hora:
+        flash('No se puede registrar el acta de un partido que aún no ha sido programado.', 'danger')
+        return redirect(url_for('admin.panel'))
+    
+    if request.method == 'POST':
+        try:
+            goles_local = int(request.form.get('goles_local', 0))
+            goles_visitante = int(request.form.get('goles_visitante', 0))
+            penales_local_str = request.form.get('penales_local')
+            penales_visitante_str = request.form.get('penales_visitante')
+            
+            penales_local = int(penales_local_str) if penales_local_str and penales_local_str.isdigit() else None
+            penales_visitante = int(penales_visitante_str) if penales_visitante_str and penales_visitante_str.isdigit() else None
+        except ValueError:
+            flash('Los valores de goles y penales deben ser numéricos.', 'danger')
+            return redirect(url_for('admin.acta_partido', partido_id=partido.id))
+            
+        # 1. Actualizar resultado global del partido y marcar como Jugado
+        partido.goles_local = goles_local
+        partido.goles_visitante = goles_visitante
+        partido.penales_local = penales_local
+        partido.penales_visitante = penales_visitante
+        partido.estado = 'Jugado'
+        
+        # 2. Limpiar estadísticas individuales anteriores para evitar duplicados si se edita
+        EstadisticaPartido.query.filter_by(partido_id=partido.id).delete()
+        
+        # Obtener todos los jugadores de ambos equipos
+        jugadores_ids = []
+        if partido.equipo_local_id:
+            jl = Jugador.query.filter_by(equipo_id=partido.equipo_local_id).all()
+            jugadores_ids.extend(jl)
+        if partido.equipo_visitante_id:
+            jv = Jugador.query.filter_by(equipo_id=partido.equipo_visitante_id).all()
+            jugadores_ids.extend(jv)
+            
+        # Registrar estadísticas de cada jugador enviado en el formulario
+        for j in jugadores_ids:
+            g = int(request.form.get(f'gol_{j.id}', 0))
+            a = int(request.form.get(f'asis_{j.id}', 0))
+            am = int(request.form.get(f'ama_{j.id}', 0))
+            r = int(request.form.get(f'roj_{j.id}', 0))
+            
+            if g > 0 or a > 0 or am > 0 or r > 0:
+                stat = EstadisticaPartido(
+                    partido_id=partido.id,
+                    jugador_id=j.id,
+                    equipo_id=j.equipo_id,
+                    goles=g,
+                    asistencias=a,
+                    amarillas=am,
+                    rojas=r
+                )
+                db.session.add(stat)
+                
+        # 3. Determinar Ganador y Perdedor
+        ganador_id = None
+        perdedor_id = None
+        
+        if goles_local > goles_visitante:
+            ganador_id = partido.equipo_local_id
+            perdedor_id = partido.equipo_visitante_id
+        elif goles_visitante > goles_local:
+            ganador_id = partido.equipo_visitante_id
+            perdedor_id = partido.equipo_local_id
+        else:
+            # En caso de empate, evaluar tanda de penales
+            if penales_local is not None and penales_visitante is not None:
+                if penales_local > penales_visitante:
+                    ganador_id = partido.equipo_local_id
+                    perdedor_id = partido.equipo_visitante_id
+                elif penales_visitante > penales_local:
+                    ganador_id = partido.equipo_visitante_id
+                    perdedor_id = partido.equipo_local_id
+                    
+        # 4. Avance automático de ronda en el fixture
+        if ganador_id and partido.partido_siguiente_ganador_id:
+            sig_ganador = Partido.query.get(partido.partido_siguiente_ganador_id)
+            if sig_ganador:
+                if not sig_ganador.equipo_local_id:
+                    sig_ganador.equipo_local_id = ganador_id
+                elif sig_ganador.equipo_visitante_id != ganador_id and not sig_ganador.equipo_visitante_id:
+                    sig_ganador.equipo_visitante_id = ganador_id
+                    
+        if perdedor_id and partido.partido_siguiente_perdedor_id:
+            sig_perdedor = Partido.query.get(partido.partido_siguiente_perdedor_id)
+            if sig_perdedor:
+                if not sig_perdedor.equipo_local_id:
+                    sig_perdedor.equipo_local_id = perdedor_id
+                elif sig_perdedor.equipo_visitante_id != perdedor_id and not sig_perdedor.equipo_visitante_id:
+                    sig_perdedor.equipo_visitante_id = perdedor_id
+                    
+        # Excepción específica para el Repechaje Masculino (conecta con Semifinal 2)
+        if partido.fase == 'Repechaje' and ganador_id:
+            semi2 = Partido.query.filter_by(categoria_id=partido.categoria_id, fase='Semifinal 2').first()
+            if semi2 and not semi2.equipo_visitante_id:
+                semi2.equipo_visitante_id = ganador_id
+                
+        db.session.commit()
+        flash('¡Acta guardada con éxito! El fixture se ha actualizado de manera automática.', 'success')
+        return redirect(url_for('admin.panel'))
+        
+    # Si es GET, preparamos las listas de jugadores y detectamos suspensiones por tarjeta roja previa
+    jugadores_local = []
+    jugadores_visitante = []
+    
+    # Identificar partidos previos jugados en esta categoría para buscar tarjetas rojas
+    partidos_previos = Partido.query.filter_by(categoria_id=partido.categoria_id, estado='Jugado').all()
+    partidos_previos_ids = [pt.id for pt in partidos_previos if pt.id != partido.id]
+    
+    jugadores_suspendidos_ids = []
+    if partidos_previos_ids:
+        stats_rojas = EstadisticaPartido.query.filter(
+            EstadisticaPartido.partido_id.in_(partidos_previos_ids),
+            EstadisticaPartido.rojas > 0
+        ).all()
+        jugadores_suspendidos_ids = [st.jugador_id for st in stats_rojas]
+
+    if partido.equipo_local_id:
+        jugadores_local = Jugador.query.filter_by(equipo_id=partido.equipo_local_id, rol_equipo='Deportista').all()
+        
+    if partido.equipo_visitante_id:
+        jugadores_visitante = Jugador.query.filter_by(equipo_id=partido.equipo_visitante_id, rol_equipo='Deportista').all()
+        
+    estadisticas_guardadas = {stat.jugador_id: stat for stat in partido.estadisticas}
+        
+    return render_template('admin/actapartido.html', 
+                           partido=partido, 
+                           jugadores_local=jugadores_local, 
+                           jugadores_visitante=jugadores_visitante,
+                           estadisticas_guardadas=estadisticas_guardadas,
+                           jugadores_suspendidos_ids=jugadores_suspendidos_ids)

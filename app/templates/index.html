@@ -34,4 +34,103 @@
         <p class="text-muted text-center py-4">Aún no hay categorías ni equipos registrados en el sistema.</p>
     {% endfor %}
 </div>
+
+
+<!-- SECCIÓN PÚBLICA DE RESULTADOS Y ESTADÍSTICAS -->
+<div class="container py-5 mt-4 border-top">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark">Resultados y Estadísticas del Torneo</h2>
+            <p class="text-muted mb-0">Consulta los marcadores de los encuentros finalizados, fases y estadísticas detalladas.</p>
+        </div>
+    </div>
+
+    <!-- Buscador público de partidos -->
+    <input type="text" id="buscadorResultados" class="form-control mb-4 border-primary shadow-sm" placeholder="🔍 Buscar por equipo, categoría o fase del partido...">
+
+    <div class="row" id="contenedorPartidos">
+        {% for p in partidos_jugados %}
+        <div class="col-md-6 mb-4 partido-card" data-busqueda="{{ p.categoria.nombre }} {{ p.fase }} {{ p.equipo_local.nombre }} {{ p.equipo_visitante.nombre }}">
+            <div class="card border-0 shadow-sm h-100 bg-light">
+                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                    <span class="badge bg-primary">{{ p.categoria.nombre }}</span>
+                    <span class="fw-bold small text-uppercase">{{ p.fase }}</span>
+                </div>
+                <div class="card-body text-center">
+                    <div class="row align-items-center mb-3">
+                        <div class="col-5 text-end">
+                            <h5 class="fw-bold text-primary mb-0">{{ p.equipo_local.nombre }}</h5>
+                        </div>
+                        <div class="col-2">
+                            <span class="badge bg-success fs-5 px-3 py-2">{{ p.goles_local }} - {{ p.goles_visitante }}</span>
+                            {% if p.penales_local is not none %}
+                                <div class="small text-muted mt-1">Penales: ({{ p.penales_local }}-{{ p.penales_visitante }})</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-5 text-start">
+                            <h5 class="fw-bold text-danger mb-0">{{ p.equipo_visitante.nombre }}</h5>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Estadísticas del partido (Goles y Tarjetas) -->
+                    <div class="text-start small">
+                        <h6 class="fw-bold text-dark mb-2">Resumen y Estadísticas:</h6>
+                        {% if p.estadisticas %}
+                            <ul class="list-unstyled mb-0">
+                                {% for stat in p.estadisticas %}
+                                    {% if stat.goles > 0 or stat.amarillas > 0 or stat.rojas > 0 %}
+                                    <li class="mb-1">
+                                        <!-- Muestra el equipo entre corchetes y luego el nombre del jugador -->
+                                        <span class="fw-semibold text-primary">[{{ stat.equipo.nombre if stat.equipo else 'Equipo' }}]</span> 
+                                        <strong class="text-dark">{{ stat.jugador.nombre if stat.jugador else 'Jugador' }}</strong>: 
+                                        
+                                        {% if stat.goles > 0 %}<span class="badge bg-dark">Goles: {{ stat.goles }}</span>{% endif %}
+                                        {% if stat.asistencias > 0 %}<span class="badge bg-secondary">Asistencias: {{ stat.asistencias }}</span>{% endif %}
+                                        {% if stat.amarillas > 0 %}<span class="badge bg-warning text-dark">T. Amarilla</span>{% endif %}
+                                        {% if stat.rojas > 0 %}<span class="badge bg-danger">T. Roja</span>{% endif %}
+                                    </li>
+                                    {% endif %}
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="text-muted italic mb-0">No se registraron incidencias individuales en este encuentro.</p>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-footer text-muted small bg-white text-end">
+                    Cancha: {{ p.cancha or 'Por definir' }} | Fecha: {{ p.fecha or 'N/A' }}
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12 text-center py-5">
+            <p class="text-muted">Aún no hay partidos finalizados para mostrar en el historial.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Script para el buscador público -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const buscador = document.getElementById("buscadorResultados");
+    if (buscador) {
+        buscador.addEventListener("input", function(e) {
+            let filtro = e.target.value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+            let tarjetas = document.querySelectorAll(".partido-card");
+            
+            tarjetas.forEach(card => {
+                let texto = card.getAttribute("data-busqueda").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+                if (texto.includes(filtro)) {
+                    card.style.display = "";
+                } else {
+                    card.style.display = "none";
+                }
+            });
+        });
+    }
+});
+</script>
 {% endblock %}

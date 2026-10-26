@@ -45,6 +45,10 @@
     <li class="nav-item" role="presentation">
         <button class="nav-link fw-semibold" id="config-tab" data-bs-toggle="tab" data-bs-target="#config-content" type="button" role="tab">Configuración</button>
     </li>
+
+    <li class="nav-item" role="presentation">
+        <button class="nav-link fw-semibold text-primary" id="fixture-tab" data-bs-toggle="tab" data-bs-target="#fixture-content" type="button" role="tab">Fixture y Sorteo</button>
+    </li>
 </ul>
 
     <!-- Contenido de las pestañas -->
@@ -432,6 +436,177 @@
                     </div>
                 </div>
             </div>
+
+
+            <!-- Pestaña: Fixture y Sorteo -->
+        <div class="tab-pane fade" id="fixture-content" role="tabpanel">
+            <div class="card border-0 shadow-sm p-4 mb-4">
+                <h4 class="mb-3 text-dark fw-bold">Generación de Fixture y Sorteo</h4>
+                <p class="text-muted small">Realiza el sorteo automático de los cruces por categoría. El sistema organizará las llaves dependiendo de la cantidad de equipos.</p>
+
+                {% for cat in categorias %}
+                <div class="alert alert-light border shadow-sm mb-4">
+                    <h5 class="fw-bold text-primary border-bottom pb-2">{{ cat.nombre }} ({{ cat.equipos|length }} Equipos inscritos)</h5>
+                    
+                    {% if cat.equipos|length == 4 %}
+                        <p class="small text-muted mb-2"><strong>Formato detectado:</strong> Semifinal Directa. El sistema sorteará automáticamente las dos llaves, conectándolas con la Final y Tercer Puesto.</p>
+                        <form method="POST" action="{{ url_for('admin.generar_fixture', categoria_id=cat.id) }}">
+                            <button type="submit" class="btn btn-success fw-bold">Realizar Sorteo Semifinales</button>
+                        </form>
+
+                    {% elif cat.equipos|length == 5 %}
+                        <p class="small text-muted mb-2"><strong>Formato detectado:</strong> Repechaje + Semifinal. Selecciona los dos equipos (4to y 5to) que jugarán el repechaje inicial. El sistema sorteará a los 3 restantes.</p>
+                        <form method="POST" action="{{ url_for('admin.generar_fixture', categoria_id=cat.id) }}" class="row g-2 align-items-end">
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold">Equipo en Repechaje 1</label>
+                                <select name="equipo_4_id" class="form-select" required>
+                                    <option value="">Seleccionar...</option>
+                                    {% for eq in cat.equipos %}
+                                        <option value="{{ eq.id }}">{{ eq.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold">Equipo en Repechaje 2</label>
+                                <select name="equipo_5_id" class="form-select" required>
+                                    <option value="">Seleccionar...</option>
+                                    {% for eq in cat.equipos %}
+                                        <option value="{{ eq.id }}">{{ eq.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <button type="submit" class="btn btn-warning fw-bold w-100">Sortear y Generar Llaves</button>
+                            </div>
+                        </form>
+
+                    {% else %}
+                        <p class="text-danger small mb-0">Para generar el fixture se requieren exactamente <strong>4 equipos</strong> (Femenino) o <strong>5 equipos</strong> (Masculino). Actualmente hay {{ cat.equipos|length }} equipos en esta categoría.</p>
+                    {% endif %}
+                </div>
+                {% else %}
+                    <p class="text-muted text-center py-3">No hay categorías registradas para realizar el sorteo.</p>
+                {% endfor %}
+            </div>
+
+
+            <hr class="my-5 border-2 border-primary">
+            <h4 class="mb-4 text-dark fw-bold">Calendario y Programación Oficial</h4>
+
+            {% for cat in categorias %}
+                <!-- EXTRAEMOS LOS PARTIDOS DE ESTA CATEGORÍA EN UNA LISTA -->
+                {% set partidos_categoria = [] %}
+                {% for p in partidos %}
+                    {% if p.categoria_id == cat.id %}
+                        {% set _ = partidos_categoria.append(p) %}
+                    {% endif %}
+                {% endfor %}
+
+                <!-- SI HAY PARTIDOS, MOSTRAMOS LA TABLA -->
+                {% if partidos_categoria %}
+                <div class="card mb-5 border-primary shadow-sm">
+                    <div class="card-header bg-primary text-white fw-bold fs-5">
+                        Fixture: {{ cat.nombre }}
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-striped align-middle mb-0">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>Fase</th>
+                                        <th class="text-end">Local</th>
+                                        <th class="text-center">VS</th>
+                                        <th>Visitante</th>
+                                        <th class="text-center">Fecha y Hora</th>
+                                        <th>Cancha</th>
+                                        <th>Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for p in partidos_categoria %}
+                                        <tr>
+                                            <td><span class="badge bg-dark">{{ p.fase }}</span></td>
+                                            <td class="fw-bold text-end">{{ p.equipo_local.nombre if p.equipo_local else p.info_local }}</td>
+                                            <td class="text-center fw-bold text-muted">VS</td>
+                                            <td class="fw-bold">{{ p.equipo_visitante.nombre if p.equipo_visitante else p.info_visitante }}</td>
+                                            
+                                            <!-- Columna de Estado / Marcador / Fecha -->
+                                            <td class="text-center">
+                                                {% if p.estado == 'Jugado' %}
+                                                    <span class="badge bg-success fs-6">Finalizado ({{ p.goles_local }} - {{ p.goles_visitante }})</span>
+                                                    {% if p.penales_local is not none and p.penales_visitante is not none %}
+                                                        <br><small class="text-muted">Penales: ({{ p.penales_local }} - {{ p.penales_visitante }})</small>
+                                                    {% endif %}
+                                                {% elif p.fecha and p.hora %}
+                                                    <span class="badge bg-success">{{ p.fecha }} | {{ p.hora }}</span>
+                                                {% else %}
+                                                    <span class="badge bg-danger">Sin programar</span>
+                                                {% endif %}
+                                            </td>
+
+                                            <td>{{ p.cancha or '-' }}</td>
+                                            
+                                            <!-- Columna de Acciones Limpia -->
+                                            <td>
+                                                <!-- Botón de programar fecha y hora -->
+                                                <button class="btn btn-sm btn-outline-primary fw-bold" data-bs-toggle="modal" data-bs-target="#programarModal{{ p.id }}">
+                                                    Programar
+                                                </button>
+
+                                                <!-- Botón inteligente de Acta Arbitral / Editar Acta -->
+                                                {% if p.equipo_local and p.equipo_visitante and p.fecha and p.hora %}
+                                                    <a href="{{ url_for('admin.acta_partido', partido_id=p.id) }}" class="btn btn-sm {% if p.estado == 'Jugado' %}btn-warning{% else %}btn-success{% endif %} fw-bold ms-1" title="Registrar o Editar Estadísticas">
+                                                        {% if p.estado == 'Jugado' %}Editar Acta{% else %}Acta Arbitral{% endif %}
+                                                    </a>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+
+                                        <!-- Modal de Programación -->
+                                        <div class="modal fade" id="programarModal{{ p.id }}" tabindex="-1">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content text-start">
+                                                    <form action="{{ url_for('admin.programar_partido', partido_id=p.id) }}" method="POST">
+                                                        <div class="modal-header bg-dark text-white">
+                                                            <h5 class="modal-title fw-bold">Asignar Fecha y Hora</h5>
+                                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <div class="alert alert-light border text-center mb-3">
+                                                                <strong>{{ p.equipo_local.nombre if p.equipo_local else p.info_local }}</strong> 
+                                                                <br>VS<br> 
+                                                                <strong>{{ p.equipo_visitante.nombre if p.equipo_visitante else p.info_visitante }}</strong>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label class="form-label fw-bold small">Fecha del Partido</label>
+                                                                <input type="date" name="fecha" class="form-control" value="{{ p.fecha or '' }}" required>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label class="form-label fw-bold small">Hora de Inicio</label>
+                                                                <input type="time" name="hora" class="form-control" value="{{ p.hora or '' }}" required>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label class="form-label fw-bold small">Cancha o Sede</label>
+                                                                <input type="text" name="cancha" class="form-control" placeholder="Ej: Cancha Sintética Norte" value="{{ p.cancha or '' }}" required>
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                            <button type="submit" class="btn btn-primary fw-bold">Guardar Cambios</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
 
     </div>
 
