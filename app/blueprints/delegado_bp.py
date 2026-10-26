@@ -11,7 +11,7 @@ def panel():
         return redirect(url_for('main.index'))
 
     user_id = session.get('user_id')
-    equipo = Equipo.query.filter_by(delegado_id=user_id).first()
+    equipo = Equipo.query.filter_by(usuario_id=user_id).first()
     
     # Obtener estado del mercado
     config = Configuracion.query.first()
@@ -50,7 +50,7 @@ def agregar_jugador():
         return redirect(url_for('main.index'))
 
     user_id = session.get('user_id')
-    equipo = Equipo.query.filter_by(delegado_id=user_id).first()
+    equipo = Equipo.query.filter_by(usuario_id=user_id).first()
 
     if not equipo:
         flash('No tienes un equipo asignado actualmente.', 'danger')
@@ -109,7 +109,7 @@ def ofertar(jugador_id):
         flash('El mercado de fichajes se encuentra cerrado.', 'danger')
         return redirect(url_for('delegado.panel'))
 
-    equipo_destino = Equipo.query.filter_by(delegado_id=session.get('user_id')).first()
+    equipo_destino = Equipo.query.filter_by(usuario_id=session.get('user_id')).first()
     jugador_objetivo = Jugador.query.get_or_404(jugador_id)
 
     # Validación de seguridad: Asegurar que solo se puede ofertar por deportistas
@@ -123,10 +123,27 @@ def ofertar(jugador_id):
 
     # Capturar datos del formulario
     tipo = request.form.get('tipo')
-    monto = request.form.get('monto', 0.0)
     nuevo_fecha_fin = request.form.get('nuevo_fecha_fin')
     jugador_intercambio_id = request.form.get('jugador_intercambio_id')
-    # Si el usuario seleccionó un jugador de intercambio, validamos que sea Deportista
+    mensaje = request.form.get('mensaje')
+    
+    # Limpieza del monto ingresado (quitando puntos)
+    monto_str = request.form.get('monto', '0')
+    monto_limpio = monto_str.replace('.', '').replace(' ', '')
+    try:
+        monto_ofrecido = float(monto_limpio)
+    except ValueError:
+        monto_ofrecido = 0.0
+
+    # NUEVA LÓGICA DE NEGOCIO: Sumar cláusula solo si es Compra
+    valor_clausula = jugador_objetivo.clausula_rescision or 0.0
+    
+    if tipo == 'Compra':
+        monto_final = monto_ofrecido + valor_clausula
+    else:
+        monto_final = monto_ofrecido # En préstamos no se cobra la cláusula
+
+    # Validar jugador de intercambio
     if jugador_intercambio_id:
         j_intercambio = Jugador.query.get(jugador_intercambio_id)
         if not j_intercambio or j_intercambio.rol_equipo != 'Deportista':
@@ -134,22 +151,18 @@ def ofertar(jugador_id):
             return redirect(url_for('delegado.panel'))
     else:
         jugador_intercambio_id = None
-    mensaje = request.form.get('mensaje')
 
-    # Si el string está vacío, convertirlo a None para la base de datos
-    if not jugador_intercambio_id:
-        jugador_intercambio_id = None
-
+    # Crear el traspaso con el MONTO FINAL calculado
     nuevo_traspaso = Traspaso(
         jugador_id=jugador_objetivo.id,
         equipo_origen_id=jugador_objetivo.equipo_id,
         equipo_destino_id=equipo_destino.id,
         tipo=tipo,
-        monto=float(monto) if monto else 0.0,
+        monto=monto_final,
         nuevo_fecha_fin=nuevo_fecha_fin,
         jugador_intercambio_id=jugador_intercambio_id,
         mensaje_negociacion=mensaje,
-        estado='Pendiente' # Pendiente de que el otro delegado acepte
+        estado='Pendiente'
     )
 
     db.session.add(nuevo_traspaso)
@@ -173,7 +186,7 @@ def editar_jugador(jugador_id):
     jugador = Jugador.query.get_or_404(jugador_id)
     
     # Validar que el jugador pertenece al equipo de este delegado
-    equipo = Equipo.query.filter_by(delegado_id=session.get('user_id')).first()
+    equipo = Equipo.query.filter_by(usuario_id=session.get('user_id')).first()
     if not equipo or jugador.equipo_id != equipo.id:
         flash('No tienes permiso para editar este jugador.', 'danger')
         return redirect(url_for('delegado.panel'))
@@ -214,25 +227,36 @@ def eliminar_jugador(jugador_id):
 
 @delegado_bp.route('/responder-oferta/<int:oferta_id>', methods=['POST'])
 def responder_oferta(oferta_id):
-    if session.get('user_rol') not in ['delegado', 'admin']:
-        return redirect(url_for('main.index'))
-
+    if session.get('user_rol') not in ['delegado', 'admin']: return redirect(url_for('main.index'))
+    
     oferta = Traspaso.query.get_or_404(oferta_id)
-    equipo_local = Equipo.query.filter_by(delegado_id=session.get('user_id')).first()
-
-    # Seguridad: Verificar que el equipo que responde es el dueño actual del jugador
-    if not equipo_local or oferta.equipo_origen_id != equipo_local.id:
-        flash('No tienes permiso para responder a esta oferta.', 'danger')
-        return redirect(url_for('delegado.panel'))
-
+    equipo_local = Equipo.query.filter_by(usuario_id=session.get('user_id')).first()
     accion = request.form.get('accion')
 
-    if accion == 'aceptar':
-        oferta.estado = 'Pendiente_Admin'
-        flash(f'Has aceptado la oferta por {oferta.jugador.nombre}. Esperando validación del Administrador.', 'success')
-    elif accion == 'rechazar':
-        oferta.estado = 'Rechazado'
-        flash(f'Has rechazado la oferta por {oferta.jugador.nombre}.', 'info')
-    
+    # Si el que responde es el DUEÑO del jugador (Equipo Origen)
+    if equipo_local and oferta.equipo_origen_id == equipo_local.id:
+        if accion == 'aceptar':
+            oferta.estado = 'Pendiente_Admin'
+            flash('Has aceptado la oferta. Esperando validación del Administrador.', 'success')
+        elif accion == 'rechazar':
+            oferta.estado = 'Rechazado'
+            flash('Has rechazado la oferta.', 'info')
+        elif accion == 'renegociar':
+            nuevo_monto_str = request.form.get('nuevo_monto', '0')
+            nuevo_monto_limpio = nuevo_monto_str.replace('.', '').replace(' ', '')
+            oferta.monto = float(nuevo_monto_limpio)
+            oferta.mensaje_negociacion = request.form.get('nuevo_mensaje', '')
+            oferta.estado = 'Contraoferta'
+            flash('Contraoferta enviada al equipo comprador.', 'success')
+
+    # Si el que responde es el COMPRADOR (Equipo Destino) evaluando la contraoferta
+    elif equipo_local and oferta.equipo_destino_id == equipo_local.id:
+        if accion == 'aceptar_contraoferta':
+            oferta.estado = 'Pendiente_Admin'
+            flash('Aceptaste la contraoferta. Esperando validación del Administrador.', 'success')
+        elif accion == 'rechazar':
+            oferta.estado = 'Rechazado'
+            flash('Rechazaste la contraoferta.', 'info')
+
     db.session.commit()
     return redirect(url_for('delegado.panel'))

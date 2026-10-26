@@ -52,7 +52,7 @@
                             👤 {{ session.get('user_nombre', 'Usuario') }}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            {% if session.get('user_rol') == 'delegado' %}
+                            {% if session.get('user_rol') in ['delegado', 'admin'] %}
                                 <li><a class="dropdown-item" href="{{ url_for('delegado.panel') }}">Mi Panel</a></li>
                                 <li><hr class="dropdown-divider"></li>
                             {% elif session.get('user_rol') == 'admin' %}
@@ -77,6 +77,18 @@
 
     <!-- Contenedor Dinámico -->
     <main class="container mt-5">
+        <div class="container mt-3">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
         {% block content %}
         <!-- El contenido de las otras páginas se renderiza aquí -->
         {% endblock %}
@@ -94,5 +106,32 @@
     
     <!-- Script personalizado para interacciones futuras (Fetch API) -->
     {% block scripts %}{% endblock %}
+
+
+    <script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Buscador de Mercado
+    const buscador = document.getElementById("buscadorMercado");
+    if (buscador) {
+        buscador.addEventListener("keyup", function() {
+            let filtro = this.value.toLowerCase();
+            let filas = document.querySelectorAll("#tablaMercado tbody tr");
+            filas.forEach(fila => {
+                fila.style.display = fila.textContent.toLowerCase().includes(filtro) ? "" : "none";
+            });
+        });
+    }
+
+    // Ocultar alertas automáticamente a los 4 segundos
+    setTimeout(function() {
+        let alertas = document.querySelectorAll(".alert-dismissible");
+        alertas.forEach(alerta => {
+            alerta.style.transition = "opacity 0.5s ease";
+            alerta.style.opacity = "0"; // Desvanecimiento suave
+            setTimeout(() => alerta.remove(), 500); // Eliminar del HTML
+        });
+    }, 4000);
+});
+</script>
 </body>
 </html>

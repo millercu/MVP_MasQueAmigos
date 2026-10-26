@@ -1,3 +1,4 @@
+from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from app.extensions import db
 from app.models import Usuario, Equipo, Configuracion, Traspaso, Jugador, Categoria
@@ -127,11 +128,14 @@ def resolver_traspaso(traspaso_id, accion):
     if accion == 'aprobar':
         # 1. Cambiar el equipo del jugador al equipo destino
         jugador.equipo_id = traspaso.equipo_destino_id
-        
+
+        # NUEVO: Establecer la fecha de hoy como inicio del nuevo contrato
+        jugador.fecha_inicio = datetime.today().strftime('%Y-%m-%d')
+
         # 2. Si se especificó una nueva fecha de contrato, actualizarla
         if traspaso.nuevo_fecha_fin:
             jugador.fecha_fin = traspaso.nuevo_fecha_fin
-            
+
         # 3. Marcar el traspaso como Avalado / Aprobado
         traspaso.estado = 'Completado'
         db.session.commit()
@@ -170,7 +174,7 @@ def asignar_delegado(equipo_id):
     usuario_id = request.form.get('usuario_id')
     
     if usuario_id:
-        equipo.delegado_id = int(usuario_id)
+        equipo.usuario_id = int(usuario_id)
         # Actualizar automáticamente el rol del usuario a 'delegado' si era un usuario común
         usuario = Usuario.query.get(usuario_id)
         if usuario and usuario.rol == 'usuario':
@@ -179,7 +183,7 @@ def asignar_delegado(equipo_id):
         db.session.commit()
         flash(f'Delegado asignado correctamente a {equipo.nombre}.', 'success')
     else:
-        equipo.delegado_id = None
+        equipo.usuario_id = None
         db.session.commit()
         flash(f'Se removió el delegado del equipo {equipo.nombre}.', 'info')
         

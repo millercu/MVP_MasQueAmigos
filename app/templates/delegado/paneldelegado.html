@@ -8,8 +8,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2 class="fw-bold text-dark">Mi Panel de Equipo</h2>
-            <p class="text-muted mb-0">Gestión de la plantilla: <span class="text-success fw-bold">{{ equipo.nombre }}</span> (Categoría: {{ equipo.categoria }})</p>
-        </div>
+            <p class="text-muted mb-0">Gestión de la plantilla: <span class="text-success fw-bold">{{ equipo.nombre }}</span> (Categoría: {{ equipo.categoria.nombre if equipo.categoria else 'Sin Categoría' }})</p>        </div>
         <div>
             {% if config and config.mercado_abierto %}
                 <span class="badge bg-success shadow-sm px-3 py-2">MERCADO ABIERTO</span>
@@ -209,8 +208,12 @@
                 {% if config and config.mercado_abierto %}
                     <p class="text-muted small">Explora jugadores de otros equipos o agentes libres y envíales una oferta formal.</p>
                     
+
+                    <!-- NUEVO BUSCADOR -->
+                    <input type="text" id="buscadorMercado" class="form-control mb-3 border-primary" placeholder="🔍 Escribe el nombre del jugador o del equipo para filtrar...">
+
                     <div class="table-responsive">
-                        <table class="table table-striped align-middle">
+                        <table class="table table-striped align-middle" id="tablaMercado">
                             <thead class="table-dark">
                                 <tr>
                                     <th>Nombre</th>
@@ -222,7 +225,9 @@
                             </thead>
                             <tbody>
                                 {% for j in mercado %}
-                                <tr>
+                                <!-- NUEVO: Inyectamos los datos exactos y limpios en el atributo "data-busqueda" de la fila -->
+                                <tr data-busqueda="{{ j.nombre }} {{ j.posicion or '' }} {{ j.equipo.nombre if j.equipo else 'Agente Libre' }}">
+                                    
                                     <td class="fw-bold">{{ j.nombre }}</td>
                                     <td>{{ j.posicion or '-' }}</td>
                                     <td>
@@ -232,15 +237,16 @@
                                             <span class="badge bg-success">Agente Libre</span>
                                         {% endif %}
                                     </td>
-                                    <td>${{ j.clausula_rescision or 0 }}</td>
+                                    <td class="text-success fw-bold">$ {{ "{:,.0f}".format(j.clausula_rescision or 0).replace(',', '.') }} COP</td>
                                     <td>
                                         <!-- Botón para abrir el Modal de Oferta -->
                                         <button type="button" class="btn btn-sm btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#ofertaModal{{ j.id }}">
                                             Hacer Oferta
                                         </button>
                                         
-                                        <!-- Modal de Oferta Fichaje -->
+                                        <!-- Modal de Oferta Fichaje (TU CÓDIGO ACTUAL SE MANTIENE INTACTO AQUÍ) -->
                                         <div class="modal fade" id="ofertaModal{{ j.id }}" tabindex="-1" aria-hidden="true">
+                                            <!-- ... Todo el contenido de tu modal ... -->
                                             <div class="modal-dialog">
                                                 <div class="modal-content">
                                                     <form method="POST" action="{{ url_for('delegado.ofertar', jugador_id=j.id) }}">
@@ -249,8 +255,7 @@
                                                             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                                         </div>
                                                         <div class="modal-body text-start">
-                                                            <p class="text-muted small">Cláusula actual: ${{ j.clausula_rescision or 0 }} | Equipo: {{ j.equipo.nombre if j.equipo else 'Libre' }}</p>
-                                                            
+                                                            <p class="text-muted small">Cláusula actual: <strong>$ {{ "{:,.0f}".format(j.clausula_rescision or 0).replace(',', '.') }} COP</strong> | Equipo: {{ j.equipo.nombre if j.equipo else 'Libre' }}</p>                                                            
                                                             <div class="mb-3">
                                                                 <label class="form-label fw-bold">Tipo de Traspaso</label>
                                                                 <select name="tipo" class="form-select" required>
@@ -259,8 +264,12 @@
                                                                 </select>
                                                             </div>
                                                             <div class="mb-3">
-                                                                <label class="form-label fw-bold">Monto Ofertado ($)</label>
-                                                                <input type="number" step="0.01" name="monto" class="form-control" required placeholder="Ej: 1000000">
+                                                                <label class="form-label fw-bold">Monto Adicional por Transferencia ($)</label>
+                                                                <input type="text" name="monto" class="form-control border-primary" required placeholder="Ej: 1.000.000">
+                                                                <div class="form-text text-success fw-semibold small mt-1">
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-info-circle-fill me-1" viewBox="0 0 16 16"><path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/></svg>
+                                                                    Si es "Compra Definitiva", el sistema sumará automáticamente la cláusula de $ {{ "{:,.0f}".format(j.clausula_rescision or 0).replace(',', '.') }} COP al valor final de tu oferta.
+                                                                </div>
                                                             </div>
                                                             <div class="mb-3">
                                                                 <label class="form-label fw-bold">Duración Nuevo Contrato (Hasta)</label>
@@ -318,8 +327,7 @@
                                 <h6 class="fw-bold text-primary">{{ oferta.equipo_destino.nombre }} quiere a {{ oferta.jugador.nombre }}</h6>
                                 <ul class="list-unstyled small mb-3">
                                     <li><strong>Tipo:</strong> {{ oferta.tipo }}</li>
-                                    <li><strong>Monto Ofertado:</strong> ${{ oferta.monto }}</li>
-                                    {% if oferta.jugador_intercambio %}
+                                    <li><strong>Monto Ofertado:</strong> <span class="text-success fw-bold">$ {{ "{:,.0f}".format(oferta.monto or 0).replace(',', '.') }} COP</span></li>                                    {% if oferta.jugador_intercambio %}
                                     <li><strong>Intercambio:</strong> Te ofrecen a {{ oferta.jugador_intercambio.nombre }} ({{ oferta.jugador_intercambio.posicion }})</li>
                                     {% endif %}
                                     {% if oferta.mensaje_negociacion %}
@@ -333,12 +341,35 @@
                                 <div class="d-flex gap-2">
                                     <form method="POST" action="{{ url_for('delegado.responder_oferta', oferta_id=oferta.id) }}">
                                         <input type="hidden" name="accion" value="aceptar">
-                                        <button type="submit" class="btn btn-sm btn-success fw-bold">Aceptar Traspaso</button>
+                                        <button type="submit" class="btn btn-sm btn-success fw-bold">Aceptar</button>
                                     </form>
+                                    
+                                    <!-- Botón Renegociar (Abre Modal) -->
+                                    <button type="button" class="btn btn-sm btn-warning fw-bold" data-bs-toggle="modal" data-bs-target="#renegociarModal{{ oferta.id }}">Renegociar</button>
+
                                     <form method="POST" action="{{ url_for('delegado.responder_oferta', oferta_id=oferta.id) }}">
                                         <input type="hidden" name="accion" value="rechazar">
                                         <button type="submit" class="btn btn-sm btn-outline-danger fw-bold">Rechazar</button>
                                     </form>
+                                </div>
+
+                                <!-- Modal Renegociar -->
+                                <div class="modal fade" id="renegociarModal{{ oferta.id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <form method="POST" action="{{ url_for('delegado.responder_oferta', oferta_id=oferta.id) }}">
+                                                <div class="modal-header bg-warning text-dark"><h5 class="modal-title fw-bold">Renegociar Traspaso</h5></div>
+                                                <div class="modal-body text-start">
+                                                    <input type="hidden" name="accion" value="renegociar">
+                                                    <label class="fw-bold">Exigir Nuevo Monto ($)</label>
+                                                    <input type="text" name="nuevo_monto" class="form-control mb-3" value="{{ '{:,.0f}'.format(oferta.monto or 0).replace(',', '.') }}" required>
+                                                    <label class="fw-bold">Mensaje de Contraoferta</label>
+                                                    <textarea name="nuevo_mensaje" class="form-control" rows="2" placeholder="Ej: No acepto menos de esto..."></textarea>
+                                                </div>
+                                                <div class="modal-footer"><button type="submit" class="btn btn-warning fw-bold">Enviar Contraoferta</button></div>
+                                            </form>
+                                        </div>
+                                    </div>
                                 </div>
                                 {% endif %}
                             </div>
@@ -358,9 +389,26 @@
                                 <ul class="list-unstyled small mb-2">
                                     <li><strong>Equipo Destino:</strong> {{ oferta.equipo_origen.nombre if oferta.equipo_origen else 'Agente Libre' }}</li>
                                     <li><strong>Tipo:</strong> {{ oferta.tipo }}</li>
-                                    <li><strong>Monto:</strong> ${{ oferta.monto }}</li>
-                                    <li><strong>Estado:</strong> <span class="badge bg-info text-dark">{{ oferta.estado }}</span></li>
+                                    <li><strong>Monto:</strong> <span class="text-success fw-bold">$ {{ "{:,.0f}".format(oferta.monto or 0).replace(',', '.') }} COP</span></li>                                    <li><strong>Estado:</strong> <span class="badge bg-info text-dark">{{ oferta.estado }}</span></li>
                                 </ul>
+                                
+                                <!-- NUEVO: Opciones para responder a la contraoferta -->
+                                {% if oferta.estado == 'Contraoferta' %}
+                                <div class="alert alert-warning p-2 mt-2">
+                                    <p class="small mb-2"><strong>¡Atención!</strong> El equipo dueño renegoció la oferta. Nuevo monto: <strong>$ {{ "{:,.0f}".format(oferta.monto or 0).replace(',', '.') }} COP</strong></p>
+                                    <div class="d-flex gap-2">
+                                        <form method="POST" action="{{ url_for('delegado.responder_oferta', oferta_id=oferta.id) }}">
+                                            <input type="hidden" name="accion" value="aceptar_contraoferta">
+                                            <button type="submit" class="btn btn-sm btn-success fw-bold">Aceptar Contraoferta</button>
+                                        </form>
+                                        <form method="POST" action="{{ url_for('delegado.responder_oferta', oferta_id=oferta.id) }}">
+                                            <input type="hidden" name="accion" value="rechazar">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger fw-bold">Rechazar</button>
+                                        </form>
+                                    </div>
+                                </div>
+                                {% endif %}
+
                             </div>
                         {% else %}
                             <p class="text-muted small mt-2">No has enviado ninguna oferta aún.</p>
@@ -380,4 +428,51 @@
     {% endif %}
 
 </div>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    
+    // 1. Limpieza total de texto (ignora tildes, acentos y mayúsculas)
+    const limpiarTexto = (texto) => {
+        if (!texto) return "";
+        return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+    };
+
+    // 2. Lógica del buscador por Data-Attribute
+    const buscador = document.getElementById("buscadorMercado");
+    if (buscador) {
+        buscador.addEventListener("input", function(e) { 
+            let filtro = limpiarTexto(e.target.value);
+            
+            // Selecciona TODAS las filas que tengan el atributo "data-busqueda"
+            let filas = document.querySelectorAll("#tablaMercado tbody tr[data-busqueda]");
+            
+            filas.forEach(fila => {
+                // El JS ya no lee el HTML de la celda, lee el texto limpio de la fila
+                let contenidoFila = limpiarTexto(fila.getAttribute("data-busqueda"));
+                
+                if (contenidoFila.includes(filtro)) {
+                    fila.style.display = ""; 
+                } else {
+                    fila.style.display = "none"; 
+                }
+            });
+        });
+    }
+
+    // 3. Temporizador de alertas
+    setTimeout(function() {
+        let alertas = document.querySelectorAll(".alert-dismissible");
+        alertas.forEach(alerta => {
+            if (typeof bootstrap !== "undefined") {
+                let bsAlert = new bootstrap.Alert(alerta);
+                bsAlert.close();
+            } else {
+                alerta.remove();
+            }
+        });
+    }, 4000);
+});
+</script>
 {% endblock %}

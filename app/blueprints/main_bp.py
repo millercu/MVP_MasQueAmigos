@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template
-from app.models import Traspaso, Configuracion
+from app.models import Traspaso, Configuracion, Categoria
 
 # Asegúrate de que esta línea exista (nombre del Blueprint)
 main_bp = Blueprint('main', __name__)
@@ -16,4 +16,6 @@ def historial_fichajes():
 
 @main_bp.route('/')
 def index():
-    return render_template('index.html') # O la vista principal que uses
+    # Obtenemos todas las categorías con sus equipos relacionados
+    categorias = Categoria.query.all()
+    return render_template('index.html', categorias=categorias)

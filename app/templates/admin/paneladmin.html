@@ -19,69 +19,41 @@
 
     <!-- Sistema de pestañas (Tabs) para modularizar las secciones -->
     <ul class="nav nav-tabs mb-4" id="adminTab" role="tablist">
-        <li class="nav-item" role="presentation">
-            <button class="nav-link active fw-semibold" id="equipos-tab" data-bs-toggle="tab" data-bs-target="#equipos-content" type="button" role="tab">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-people me-1" viewBox="0 0 16 16">
-                  <path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1zm-7.978-1L7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002-.014.002zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4m3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0M6.936 9.28a6 6 0 0 0-1.23-.247A7 7 0 0 0 5 9c-4 0-5 3-5 4q0 1 1 1h4.216A2.24 2.24 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816M4.92 10A5.5 5.5 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275ZM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0m3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4"/>
-                </svg>
-                Gestión de Equipos
-            </button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link fw-semibold" id="usuarios-tab" data-bs-toggle="tab" data-bs-target="#usuarios-content" type="button" role="tab">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-lines-fill me-1" viewBox="0 0 16 16">
-                  <path d="M6 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m-5 6s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1zM11 3.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 1-.5-.5m.5 2.5a.5.5 0 0 0 0 1h4a.5.5 0 0 0 0-1zm2 3a.5.5 0 0 0 0 1h2a.5.5 0 0 0 0-1zm0 3a.5.5 0 0 0 0 1h2a.5.5 0 0 0 0-1z"/>
-                </svg>
-                Comunidad Registrada
-            </button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link fw-semibold" id="config-tab" data-bs-toggle="tab" data-bs-target="#config-content" type="button" role="tab">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-gear me-1" viewBox="0 0 16 16">
-                  <path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492M5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0"/>
-                  <path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.377l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115z"/>
-                </svg>
-                Configuración del Torneo
-            </button>
-        </li>
-
-        <li class="nav-item" role="presentation">
-            <button class="nav-link fw-semibold" id="traspasos-tab" data-bs-toggle="tab" data-bs-target="#traspasos-content" type="button" role="tab">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left-right me-1" viewBox="0 0 16 16">
-                <path fill-rule="evenodd" d="M1 11.5a.5.5 0 0 0 .5.5h11.793l-3.147 3.146a.5.5 0 0 0 .708.708l4-4a.5.5 0 0 0 0-.708l-4-4a.5.5 0 0 0-.708.708L13.293 11H1.5a.5.5 0 0 0-.5.5m14-7a.5.5 0 0 1-.5.5H2.707l3.147 3.146a.5.5 0 1 1-.708.708l-4-4a.5.5 0 0 1 0-.708l4-4a.5.5 0 0 1 .708.708L2.707 4H14.5a.5.5 0 0 1 .5.5"/>
-                </svg>
-                Traspasos Pendientes
-                {% if traspasos_pendientes|length > 0 %}
-                    <span class="badge bg-danger ms-1">{{ traspasos_pendientes|length }}</span>
-                {% endif %}
-            </button>
-        </li>
-
-        <li class="nav-item" role="presentation">
-            <button class="nav-link fw-semibold" id="jugadores-admin-tab" data-bs-toggle="tab" data-bs-target="#jugadores-admin-content" type="button" role="tab">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person-badge me-1" viewBox="0 0 16 16">
-                <path d="M6.5 2a.5.5 0 0 0 0 1h3a.5.5 0 0 0 0-1zM11 8a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
-                <path d="M4.5 0A2.5 2.5 0 0 0 2 2.5V14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V2.5A2.5 2.5 0 0 0 11.5 0zM3 2.5A1.5 1.5 0 0 1 4.5 1h7A1.5 1.5 0 0 1 13 2.5v10.795c.423-.045.85-.14 1.283-.266V2.5a2.5 2.5 0 0 0-2.5-2.5h-8A2.5 2.5 0 0 0 1 2.5v10.529c.433.127.86.222 1.283.266z"/>
-                </svg>
-                Control de Jugadores
-            </button>
-        </li>
-
-        <li class="nav-item" role="presentation">
-            <button class="nav-link fw-semibold" id="categorias-tab" data-bs-toggle="tab" data-bs-target="#categorias-content" type="button" role="tab">Categorías</button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link fw-semibold" id="equipos-tab" data-bs-toggle="tab" data-bs-target="#equipos-content" type="button" role="tab">Equipos</button>
-        </li>
-    </ul>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active fw-semibold" id="delegados-tab" data-bs-toggle="tab" data-bs-target="#delegados-content" type="button" role="tab">Delegados</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link fw-semibold" id="equipos-tab" data-bs-toggle="tab" data-bs-target="#equipos-content" type="button" role="tab">Equipos</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link fw-semibold" id="categorias-tab" data-bs-toggle="tab" data-bs-target="#categorias-content" type="button" role="tab">Categorías</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link fw-semibold" id="usuarios-tab" data-bs-toggle="tab" data-bs-target="#usuarios-content" type="button" role="tab">Comunidad</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link fw-semibold" id="jugadores-admin-tab" data-bs-toggle="tab" data-bs-target="#jugadores-admin-content" type="button" role="tab">Control Jugadores</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link fw-semibold" id="traspasos-tab" data-bs-toggle="tab" data-bs-target="#traspasos-content" type="button" role="tab">
+            Traspasos
+            {% if traspasos_pendientes|length > 0 %}
+                <span class="badge bg-danger ms-1">{{ traspasos_pendientes|length }}</span>
+            {% endif %}
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link fw-semibold" id="config-tab" data-bs-toggle="tab" data-bs-target="#config-content" type="button" role="tab">Configuración</button>
+    </li>
+</ul>
 
     <!-- Contenido de las pestañas -->
     <div class="tab-content" id="adminTabContent">
         
         <!-- Pestaña 1: Equipos y Delegados -->
-        <div class="tab-pane fade show active" id="equipos-content" role="tabpanel">
+        <div class="tab-pane fade show active" id="delegados-content" role="tabpanel">
             <div class="card border-0 shadow-sm p-4">
-                <h4 class="mb-3 text-dark fw-bold">Asignación de Delegados</h4>
+                 <h4 class="mb-3 text-dark fw-bold">Asignación de Delegados</h4>
                 <p class="text-muted small">Asigna los usuarios registrados como delegados oficiales de cada equipo participante.</p>
 
                 <div class="table-responsive">
@@ -98,7 +70,7 @@
                             {% for eq in equipos %}
                             <tr>
                                 <td class="fw-bold">{{ eq.nombre }}</td>
-                                <td>{{ eq.categoria }}</td>
+                                <td>{{ eq.categoria.nombre if eq.categoria else 'Sin Categoría' }}</td>
                                 <td>
                                     {% if eq.delegado_asignado %}
                                         <span class="badge bg-success">{{ eq.delegado_asignado.nombres }} ({{ eq.delegado_asignado.email }})</span>
@@ -107,21 +79,39 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    <form method="POST" action="{{ url_for('admin.asignar_delegado', equipo_id=eq.id) }}" class="row g-2">
-                                        <div class="col-auto">
-                                            <select name="usuario_id" class="form-select form-select-sm" required>
-                                                <option value="">Seleccionar usuario...</option>
-                                                {% for u in usuarios %}
-                                                <option value="{{ u.id }}" {% if eq.delegado_id == u.id %}selected{% endif %}>
-                                                    {{ u.nombres }} ({{ u.email }})
-                                                </option>
-                                                {% endfor %}
-                                            </select>
+                                    <!-- Botón que abre el modal -->
+                                    <button type="button" class="btn btn-sm btn-outline-dark" data-bs-toggle="modal" data-bs-target="#modalDelegado{{ eq.id }}">
+                                        Asignar / Cambiar
+                                    </button>
+
+                                    <!-- Modal de asignación -->
+                                    <div class="modal fade" id="modalDelegado{{ eq.id }}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content text-start">
+                                                <div class="modal-header bg-dark text-white">
+                                                    <h5 class="modal-title">Delegado para {{ eq.nombre }}</h5>
+                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <form method="POST" action="{{ url_for('admin.asignar_delegado', equipo_id=eq.id) }}">
+                                                    <div class="modal-body">
+                                                        <label class="form-label fw-bold">Seleccionar Usuario</label>
+                                                        <select name="usuario_id" class="form-select" required>
+                                                            <option value="">Seleccionar usuario...</option>
+                                                            {% for u in usuarios %}
+                                                            <option value="{{ u.id }}" {% if eq.usuario_id == u.id %}selected{% endif %}>
+                                                                {{ u.nombres }} ({{ u.email }})
+                                                            </option>
+                                                            {% endfor %}
+                                                        </select>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                        <button type="submit" class="btn btn-primary">Guardar</button>
+                                                    </div>
+                                                </form>
+                                            </div>
                                         </div>
-                                        <div class="col-auto">
-                                            <button type="submit" class="btn btn-sm btn-dark">Guardar</button>
-                                        </div>
-                                    </form>
+                                    </div>
                                 </td>
                             </tr>
                             {% endfor %}

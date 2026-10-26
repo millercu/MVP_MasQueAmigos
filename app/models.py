@@ -37,7 +37,8 @@ class Equipo(db.Model):
     usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=True)
     
     # Relación con jugadores (ya la tienes)
-    jugadores = db.relationship('Jugador', backref='equipo_asociado', lazy=True, cascade='all, delete-orphan')
+    jugadores = db.relationship('Jugador', backref='equipo', lazy=True, cascade='all, delete-orphan')
+
 
 class Jugador(db.Model):
     __tablename__ = 'jugador'
@@ -54,8 +55,8 @@ class Jugador(db.Model):
     # CAMBIO IMPORTANTE: Lo pasamos a nullable=True para permitir jugadores "Libres"
     equipo_id = db.Column(db.Integer, db.ForeignKey('equipo.id'), nullable=True)
 
-    equipo = db.relationship('Equipo', backref=db.backref('jugadores_rel', lazy=True))
-    
+
+
     # NUEVOS CAMPOS: Para dinero y estado en el mercado
     clausula_rescision = db.Column(db.Float, default=0.0)
     estado_fichaje = db.Column(db.String(20), default='Activo') # Activo, Libre, Prestamo
