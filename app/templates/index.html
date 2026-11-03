@@ -2,6 +2,40 @@
 {% block title %}Inicio - Torneo de Fútbol Bagadó{% endblock %}
 
 {% block content %}
+
+
+
+<div class="d-flex justify-content-between align-items-center mb-4 bg-light p-3 border rounded shadow-sm">
+    <div>
+        <h4 class="fw-bold text-dark mb-0">
+            {% if torneo_seleccionado %}
+                {{ torneo_seleccionado.nombre }} 
+                {% if torneo_seleccionado.estado == 'Activo' %}
+                    <span class="badge bg-success fs-6 ms-2">En Curso</span>
+                {% else %}
+                    <span class="badge bg-secondary fs-6 ms-2">Edición Finalizada</span>
+                {% endif %}
+            {% else %}
+                Copa Más Que Amigos
+            {% endif %}
+        </h4>
+    </div>
+    
+    <form method="GET" action="{{ url_for('main.index') }}" class="d-flex align-items-center gap-2">
+        <label class="fw-bold text-muted small text-nowrap">Ver edición:</label>
+        <select name="torneo_id" class="form-select border-primary fw-bold" onchange="this.form.submit()">
+            <option value="">Seleccionar torneo...</option>
+            {% for t in torneos %}
+                <option value="{{ t.id }}" {% if torneo_seleccionado and t.id == torneo_seleccionado.id %}selected{% endif %}>
+                    {{ t.nombre }}
+                </option>
+            {% endfor %}
+        </select>
+    </form>
+</div>
+
+
+
 <div class="container py-5">
     <h2 class="mb-4 fw-bold">Equipos Participantes</h2>
     <p class="text-muted">Conoce los equipos oficiales que están compitiendo en el torneo.</p>
@@ -20,7 +54,7 @@
                                     <p class="card-text small text-muted">
                                         Delegado: {{ eq.delegado_asignado.nombres if eq.delegado_asignado else 'Sin asignar' }}
                                     </p>
-                                    <a href="#" class="btn btn-sm btn-outline-primary">Ver Información del Equipo</a>
+                                    <a href="{{ url_for('main.ver_equipo', equipo_id=eq.id) }}" class="btn btn-sm btn-outline-primary">Ver Información del Equipo</a>
                                 </div>
                             </div>
                         </div>
@@ -34,6 +68,8 @@
         <p class="text-muted text-center py-4">Aún no hay categorías ni equipos registrados en el sistema.</p>
     {% endfor %}
 </div>
+
+
 
 
 <!-- SECCIÓN PÚBLICA DE RESULTADOS Y ESTADÍSTICAS -->
@@ -110,6 +146,45 @@
         </div>
         {% endfor %}
     </div>
+
+
+
+    <!-- SECCIÓN PÚBLICA DE PODIOS eSPORTS / CONSOLA -->
+<div class="container py-4 mt-3 border-top">
+    <h3 class="fw-bold text-dark mb-3">Cuadro de Honor - eSports</h3>
+    <div class="row">
+        {% for cat in categorias %}
+            {% if cat.podio and (cat.podio.campeon or cat.podio.subcampeon or cat.podio.tercer_puesto) %}
+            <div class="col-md-6 mb-4">
+                <div class="card border-0 shadow-sm bg-light h-100">
+                    <div class="card-header bg-success text-white fw-bold">
+                        {{ cat.nombre }}
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush bg-transparent">
+                            <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center">
+                                <span class="fw-bold text-warning">Campeón:</span>
+                                <span class="badge bg-dark fs-6">{{ cat.podio.campeon or 'N/A' }}</span>
+                            </li>
+                            <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center">
+                                <span class="fw-bold text-secondary">Subcampeón:</span>
+                                <span class="badge bg-secondary fs-6">{{ cat.podio.subcampeon or 'N/A' }}</span>
+                            </li>
+                            <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center">
+                                <span class="fw-bold text-danger">Tercer Puesto:</span>
+                                <span class="badge bg-danger fs-6">{{ cat.podio.tercer_puesto or 'N/A' }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+</div>
+
+
+
 </div>
 
 <!-- Script para el buscador público -->

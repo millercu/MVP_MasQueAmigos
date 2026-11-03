@@ -1,6 +1,16 @@
 from app.extensions import db
 from datetime import datetime, date
 
+class Torneo(db.Model):
+    __tablename__ = 'torneo'
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(100), nullable=False) # Ej: "Torneo Noviembre 2026"
+    estado = db.Column(db.String(20), default='Activo') # 'Activo' o 'Finalizado'
+    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    categorias = db.relationship('Categoria', backref='torneo', cascade='all, delete-orphan')
+    documentos = db.relationship('DocumentoTorneo', backref='torneo', cascade='all, delete-orphan')
+
 class Usuario(db.Model):
     __tablename__ = 'usuario'
     
@@ -21,9 +31,11 @@ class Categoria(db.Model):
     __tablename__ = 'categoria'
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(100), nullable=False, unique=True)
-    
-    # Relación con equipos
-    equipos = db.relationship('Equipo', backref='categoria', lazy=True, cascade='all, delete-orphan')
+    torneo_id = db.Column(db.Integer, db.ForeignKey('torneo.id'), nullable=True) # Vinculación
+
+
+    # Restaura solo esta línea para recuperar la categoría de los equipos:
+    equipos = db.relationship('Equipo', backref='categoria', cascade='all, delete-orphan')
 
 class Equipo(db.Model):
     __tablename__ = 'equipo'
@@ -148,3 +160,29 @@ class EstadisticaPartido(db.Model):
     partido = db.relationship('Partido', backref=db.backref('estadisticas', cascade='all, delete-orphan'))
     jugador = db.relationship('Jugador', backref='estadisticas')
     equipo = db.relationship('Equipo', foreign_keys=[equipo_id])
+
+
+class DocumentoTorneo(db.Model):
+    __tablename__ = 'documento_torneo'
+    id = db.Column(db.Integer, primary_key=True)
+    titulo = db.Column(db.String(150), nullable=False)
+    archivo = db.Column(db.String(255), nullable=False)
+    subido_por_rol = db.Column(db.String(50), nullable=False) # 'admin' o 'delegado'
+    torneo_id = db.Column(db.Integer, db.ForeignKey('torneo.id'), nullable=False)
+    equipo_id = db.Column(db.Integer, db.ForeignKey('equipo.id'), nullable=True) # Si lo sube el delegado
+    fecha_subida = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    equipo = db.relationship('Equipo', backref='documentos')
+
+
+
+class PodioEsports(db.Model):
+    __tablename__ = 'podio_esports'
+    id = db.Column(db.Integer, primary_key=True)
+    categoria_id = db.Column(db.Integer, db.ForeignKey('categoria.id'), nullable=False, unique=True)
+    campeon = db.Column(db.String(100), nullable=True)
+    subcampeon = db.Column(db.String(100), nullable=True)
+    tercer_puesto = db.Column(db.String(100), nullable=True)
+    
+    # Relación para acceder fácil desde la categoría
+    categoria = db.relationship('Categoria', backref=db.backref('podio', uselist=False, cascade='all, delete-orphan'))

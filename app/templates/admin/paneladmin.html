@@ -25,9 +25,11 @@
     <li class="nav-item" role="presentation">
         <button class="nav-link fw-semibold" id="equipos-tab" data-bs-toggle="tab" data-bs-target="#equipos-content" type="button" role="tab">Equipos</button>
     </li>
+
     <li class="nav-item" role="presentation">
-        <button class="nav-link fw-semibold" id="categorias-tab" data-bs-toggle="tab" data-bs-target="#categorias-content" type="button" role="tab">Categorías</button>
+    <button class="nav-link fw-semibold" id="categorias-tab" data-bs-toggle="tab" data-bs-target="#categorias-content" type="button" role="tab">Categorías</button>
     </li>
+
     <li class="nav-item" role="presentation">
         <button class="nav-link fw-semibold" id="usuarios-tab" data-bs-toggle="tab" data-bs-target="#usuarios-content" type="button" role="tab">Comunidad</button>
     </li>
@@ -36,18 +38,26 @@
     </li>
     <li class="nav-item" role="presentation">
         <button class="nav-link fw-semibold" id="traspasos-tab" data-bs-toggle="tab" data-bs-target="#traspasos-content" type="button" role="tab">
-            Traspasos
+            Traspasos Pendientes
             {% if traspasos_pendientes|length > 0 %}
                 <span class="badge bg-danger ms-1">{{ traspasos_pendientes|length }}</span>
             {% endif %}
         </button>
     </li>
     <li class="nav-item" role="presentation">
-        <button class="nav-link fw-semibold" id="config-tab" data-bs-toggle="tab" data-bs-target="#config-content" type="button" role="tab">Configuración</button>
+        <button class="nav-link fw-semibold" id="config-tab" data-bs-toggle="tab" data-bs-target="#config-content" type="button" role="tab">Mercado de fichajes</button>
     </li>
 
     <li class="nav-item" role="presentation">
         <button class="nav-link fw-semibold text-primary" id="fixture-tab" data-bs-toggle="tab" data-bs-target="#fixture-content" type="button" role="tab">Fixture y Sorteo</button>
+    </li>
+
+    <li class="nav-item" role="presentation">
+        <button class="nav-link fw-semibold" id="documentos-tab" data-bs-toggle="tab" data-bs-target="#documentos-content" type="button" role="tab">Documentos Oficiales</button>
+    </li>
+
+    <li class="nav-item" role="presentation">
+    <button class="nav-link fw-semibold text-success" id="torneos-tab" data-bs-toggle="tab" data-bs-target="#torneos-content" type="button" role="tab">Gestión de Torneos</button>
     </li>
 </ul>
 
@@ -203,6 +213,80 @@
                 </form>
             </div>
         </div>
+
+
+        <div class="tab-pane fade" id="torneos-content" role="tabpanel">
+    <div class="card border-0 shadow-sm p-4 mb-4">
+        <h4 class="mb-3 text-dark fw-bold">Gestión de Campeonatos (Multitorneo)</h4>
+        <p class="text-muted small">Crea nuevas ediciones del torneo (Ej: Copa Noviembre, Torneo Clausura) y define cuál está en curso. Solo el torneo activo recibirá nuevos equipos, partidos y estadísticas.</p>
+
+        <form method="POST" action="{{ url_for('admin.crear_torneo') }}" class="row g-2 mb-5 bg-light p-3 border rounded">
+            <div class="col-md-9">
+                <input type="text" name="nombre" class="form-control" placeholder="Nombre de la nueva edición (Ej: Copa Más Que Amigos - Edición Diciembre)" required>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-dark w-100 fw-bold">Crear Torneo</button>
+            </div>
+        </form>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle text-center">
+                <thead class="table-dark">
+                    <tr>
+                        <th class="text-start">Nombre del Campeonato</th>
+                        <th>Estado Actual</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in torneos %}
+                    <tr>
+                        <td class="text-start fw-bold">{{ t.nombre }}</td>
+                        <td>
+                            {% if t.estado == 'Activo' %}
+                                <span class="badge bg-success px-3 py-2 shadow-sm">Torneo en Curso</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Finalizado / Histórico</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex gap-2 justify-content-center">
+                                {% if t.estado != 'Activo' %}
+                                <form method="POST" action="{{ url_for('admin.activar_torneo', torneo_id=t.id) }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-success fw-bold">Activar</button>
+                                </form>
+                                {% else %}
+                                    <button class="btn btn-sm btn-light text-muted" disabled>Actualmente Activo</button>
+                                {% endif %}
+
+                                <!-- Botón para eliminar el torneo por completo -->
+                                <form method="POST" action="{{ url_for('admin.eliminar_torneo', torneo_id=t.id) }}" onsubmit="return confirm('¿Estás seguro de eliminar este torneo? Se borrarán en cascada todas sus categorías, equipos y partidos asociados.');">
+                                    <button type="submit" class="btn btn-sm btn-danger fw-bold">Eliminar</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="3" class="text-muted py-4">No hay torneos registrados. Crea el primero arriba.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+
+            <div class="card border-0 shadow-sm p-4 mt-4 bg-light">
+                <h5 class="fw-bold text-dark">Reutilizar Equipos y Categorías  del torneo anterior</h5>
+                <p class="small text-muted mb-3">Si acabas de crear un torneo nuevo y quieres que aparezcan los mismos equipos de la edición pasada para no tener que crearlos desde cero, haz clic en el siguiente botón:</p>
+                
+                <form method="POST" action="{{ url_for('admin.vincular_antiguos') }}" onsubmit="return confirm('¿Deseas vincular los equipos y categorías existentes al torneo activo?');">
+                    <button type="submit" class="btn btn-dark fw-bold px-4 py-2">
+                        Vincular Equipos al nuevo torneo
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
 
         <!-- Pestaña 4: Traspasos Pendientes de Validación -->
             <div class="tab-pane fade" id="traspasos-content" role="tabpanel">
@@ -438,56 +522,62 @@
             </div>
 
 
-            <!-- Pestaña: Fixture y Sorteo -->
-        <div class="tab-pane fade" id="fixture-content" role="tabpanel">
-            <div class="card border-0 shadow-sm p-4 mb-4">
-                <h4 class="mb-3 text-dark fw-bold">Generación de Fixture y Sorteo</h4>
-                <p class="text-muted small">Realiza el sorteo automático de los cruces por categoría. El sistema organizará las llaves dependiendo de la cantidad de equipos.</p>
+          <!-- Pestaña: Fixture y Sorteo -->
+<div class="tab-pane fade" id="fixture-content" role="tabpanel">
+    <div class="card border-0 shadow-sm p-4 mb-4">
+        <h4 class="mb-3 text-dark fw-bold">Generación de Fixture y Sorteo</h4>
+        <p class="text-muted small">Realiza el sorteo automático de los cruces por categoría. El sistema organizará las llaves dependiendo de la cantidad de equipos.</p>
 
-                {% for cat in categorias %}
-                <div class="alert alert-light border shadow-sm mb-4">
-                    <h5 class="fw-bold text-primary border-bottom pb-2">{{ cat.nombre }} ({{ cat.equipos|length }} Equipos inscritos)</h5>
-                    
-                    {% if cat.equipos|length == 4 %}
-                        <p class="small text-muted mb-2"><strong>Formato detectado:</strong> Semifinal Directa. El sistema sorteará automáticamente las dos llaves, conectándolas con la Final y Tercer Puesto.</p>
-                        <form method="POST" action="{{ url_for('admin.generar_fixture', categoria_id=cat.id) }}">
-                            <button type="submit" class="btn btn-success fw-bold">Realizar Sorteo Semifinales</button>
-                        </form>
+        {% for cat in categorias %}
+        <div class="alert alert-light border shadow-sm mb-4">
+            <h5 class="fw-bold text-primary border-bottom pb-2">{{ cat.nombre }} ({{ cat.equipos|length }} Equipos inscritos)</h5>
+            
+            {% if cat.equipos|length == 4 %}
+                <p class="small text-muted mb-2"><strong>Formato detectado:</strong> Semifinal Directa. El sistema sorteará automáticamente las dos llaves, conectándolas con la Final y Tercer Puesto.</p>
+                <form method="POST" action="{{ url_for('admin.generar_fixture', categoria_id=cat.id) }}">
+                    <button type="submit" class="btn btn-success fw-bold">Realizar Sorteo Semifinales</button>
+                </form>
 
-                    {% elif cat.equipos|length == 5 %}
-                        <p class="small text-muted mb-2"><strong>Formato detectado:</strong> Repechaje + Semifinal. Selecciona los dos equipos (4to y 5to) que jugarán el repechaje inicial. El sistema sorteará a los 3 restantes.</p>
-                        <form method="POST" action="{{ url_for('admin.generar_fixture', categoria_id=cat.id) }}" class="row g-2 align-items-end">
-                            <div class="col-md-4">
-                                <label class="form-label small fw-bold">Equipo en Repechaje 1</label>
-                                <select name="equipo_4_id" class="form-select" required>
-                                    <option value="">Seleccionar...</option>
-                                    {% for eq in cat.equipos %}
-                                        <option value="{{ eq.id }}">{{ eq.nombre }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label small fw-bold">Equipo en Repechaje 2</label>
-                                <select name="equipo_5_id" class="form-select" required>
-                                    <option value="">Seleccionar...</option>
-                                    {% for eq in cat.equipos %}
-                                        <option value="{{ eq.id }}">{{ eq.nombre }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <button type="submit" class="btn btn-warning fw-bold w-100">Sortear y Generar Llaves</button>
-                            </div>
-                        </form>
+            {% elif cat.equipos|length == 5 %}
+                <p class="small text-muted mb-2"><strong>Formato detectado:</strong> Repechaje + Semifinal. Selecciona los dos equipos (4to y 5to) que jugarán el repechaje inicial. El sistema sorteará a los 3 restantes.</p>
+                <form method="POST" action="{{ url_for('admin.generar_fixture', categoria_id=cat.id) }}" class="row g-2 align-items-end">
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">Equipo en Repechaje 1</label>
+                        <select name="equipo_4_id" class="form-select" required>
+                            <option value="">Seleccionar...</option>
+                            {% for eq in cat.equipos %}
+                                <option value="{{ eq.id }}">{{ eq.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold">Equipo en Repechaje 2</label>
+                        <select name="equipo_5_id" class="form-select" required>
+                            <option value="">Seleccionar...</option>
+                            {% for eq in cat.equipos %}
+                                <option value="{{ eq.id }}">{{ eq.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-warning fw-bold w-100">Sortear y Generar Llaves</button>
+                    </div>
+                </form>
+            {% else %}
+                <p class="text-danger small mb-0">Para generar el fixture se requieren exactamente <strong>4 equipos</strong> (Femenino) o <strong>5 equipos</strong> (Masculino). Actualmente hay {{ cat.equipos|length }} equipos en esta categoría.</p>
+            {% endif %}
 
-                    {% else %}
-                        <p class="text-danger small mb-0">Para generar el fixture se requieren exactamente <strong>4 equipos</strong> (Femenino) o <strong>5 equipos</strong> (Masculino). Actualmente hay {{ cat.equipos|length }} equipos en esta categoría.</p>
-                    {% endif %}
-                </div>
-                {% else %}
-                    <p class="text-muted text-center py-3">No hay categorías registradas para realizar el sorteo.</p>
-                {% endfor %}
+            <!-- BOTÓN PARA ELIMINAR EL SORTEO DE ESTA CATEGORÍA ESPECÍFICA -->
+            <div class="mt-3 pt-2 border-top">
+                <form method="POST" action="{{ url_for('admin.eliminar_fixture', categoria_id=cat.id) }}" onsubmit="return confirm('¿Seguro que deseas eliminar todo el sorteo y partidos de esta categoría?');">
+                    <button type="submit" class="btn btn-sm btn-outline-danger fw-bold"> Eliminar Sorteo Actual de {{ cat.nombre }}</button>
+                </form>
             </div>
+        </div>
+        {% else %}
+            <p class="text-muted text-center py-3">No hay categorías registradas para realizar el sorteo.</p>
+        {% endfor %}
+    </div>
 
 
             <hr class="my-5 border-2 border-primary">
@@ -606,6 +696,76 @@
                 </div>
                 {% endif %}
             {% endfor %}
+        </div>
+
+
+        <!-- Pestaña de Documentos (Admin) -->
+        <div class="tab-pane fade" id="documentos-content" role="tabpanel">
+            <div class="card border-0 shadow-sm p-4">
+                <h4 class="mb-3 text-dark fw-bold">Gestión de Documentos PDF</h4>
+                <p class="text-muted small">Sube reglamentos para los delegados o revisa los reportes que ellos han enviado.</p>
+
+                <!-- Formulario para subir PDF -->
+                <form method="POST" action="{{ url_for('admin.subir_documento') }}" enctype="multipart/form-data" class="mb-4 row g-3 bg-light p-3 border rounded">
+                    <div class="col-md-5">
+                        <label class="form-label fw-bold small">Título del Documento</label>
+                        <input type="text" name="titulo" class="form-control" required placeholder="Ej: Reglamento Interno 2026">
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label fw-bold small">Archivo PDF</label>
+                        <input type="file" name="archivo" class="form-control" accept=".pdf" required>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-dark w-100">Subir PDF</button>
+                    </div>
+                </form>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Título</th>
+                                <th>Origen</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                       <tbody>
+                        {% for doc in documentos %}
+                        <tr>
+                            <td>{{ doc.fecha_subida.strftime('%Y-%m-%d') }}</td>
+                            <td class="fw-bold">{{ doc.titulo }}</td>
+                            <td>
+                                {% if doc.subido_por_rol == 'admin' %}
+                                    <span class="badge bg-primary">Administrador</span>
+                                {% else %}
+                                    <span class="badge bg-success">Delegado ({{ doc.equipo.nombre if doc.equipo else 'N/A' }})</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex gap-2">
+                                    <a href="{{ url_for('static', filename='uploads/' ~ doc.archivo) }}" target="_blank" class="btn btn-sm btn-outline-dark fw-bold">Ver / Descargar</a>
+                                    
+                                    <form method="POST" action="{{ url_for('admin.eliminar_documento', doc_id=doc.id) }}" onsubmit="return confirm('¿Seguro que deseas eliminar este documento de forma permanente?');">
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Eliminar Documento">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+                                            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z"/>
+                                            <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z"/>
+                                            </svg>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="text-center text-muted">Aún no hay documentos registrados.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
 
     </div>

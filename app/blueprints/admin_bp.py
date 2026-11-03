@@ -1,8 +1,10 @@
 import random
+import os
+from werkzeug.utils import secure_filename
 from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from app.extensions import db
-from app.models import Usuario, Equipo, Configuracion, Traspaso, Jugador, Categoria, Partido
+from app.models import Usuario, Equipo, Configuracion, Traspaso, Jugador, Categoria, Partido, DocumentoTorneo, Torneo, PodioEsports
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -13,33 +15,53 @@ def panel():
         return redirect(url_for('main.index'))
     
     usuarios = Usuario.query.all()
-    equipos = Equipo.query.all()
     jugadores = Jugador.query.all()
-    categorias = Categoria.query.all() # <-- ASEGÚRATE DE PASAR ESTO
     config = Configuracion.query.first()
     traspasos_pendientes = Traspaso.query.filter_by(estado='Pendiente_Admin').all()
+    
+    torneos = Torneo.query.order_by(Torneo.fecha_creacion.desc()).all()
+    torneo_activo = Torneo.query.filter_by(estado='Activo').first()
+    
+    # AUTOCORRECCIÓN 1: Si no hay torneos creados, creamos uno principal por defecto
+    if not torneo_activo:
+        if not torneos:
+            torneo_activo = Torneo(nombre="Torneo Principal", estado='Activo')
+            db.session.add(torneo_activo)
+            db.session.commit()
+            torneos = [torneo_activo]
+        else:
+            torneo_activo = torneos[0]
+            torneo_activo.estado = 'Activo'
+            db.session.commit()
 
-    partidos = Partido.query.all()
+    # AUTOCORRECCIÓN 2: Rescatar automáticamente categorías antiguas sin torneo asignado
+    categorias_huerfanas = Categoria.query.filter_by(torneo_id=None).all()
+    if categorias_huerfanas:
+        for cat in categorias_huerfanas:
+            cat.torneo_id = torneo_activo.id
+        db.session.commit()
+    
+    # Filtrar información del torneo activo
+    categorias = Categoria.query.filter_by(torneo_id=torneo_activo.id).all()
+    cat_ids = [c.id for c in categorias]
+    
+    equipos = Equipo.query.filter(Equipo.categoria_id.in_(cat_ids)).all() if cat_ids else []
+    partidos = Partido.query.filter(Partido.categoria_id.in_(cat_ids)).all() if cat_ids else []
+    documentos = DocumentoTorneo.query.filter_by(torneo_id=torneo_activo.id).order_by(DocumentoTorneo.fecha_subida.desc()).all()
     
     return render_template('admin/paneladmin.html', 
                            usuarios=usuarios, 
                            equipos=equipos, 
                            jugadores=jugadores,
-                           categorias=categorias, # <-- AQUÍ
+                           categorias=categorias, 
                            config=config,
                            traspasos_pendientes=traspasos_pendientes,
-                           partidos=partidos)
+                           partidos=partidos,
+                           documentos=documentos,
+                           torneos=torneos,
+                           torneo_activo=torneo_activo)
 
-@admin_bp.route('/categoria/crear', methods=['POST'])
-def crear_categoria():
-    if session.get('user_rol') != 'admin': return redirect(url_for('main.index'))
-    nombre = request.form.get('nombre')
-    if nombre:
-        nueva = Categoria(nombre=nombre)
-        db.session.add(nueva)
-        db.session.commit()
-        flash('Categoría creada con éxito.', 'success')
-    return redirect(url_for('admin.panel'))
+
 
 @admin_bp.route('/categoria/editar/<int:id>', methods=['POST'])
 def editar_categoria(id):
@@ -429,3 +451,186 @@ def acta_partido(partido_id):
                            jugadores_visitante=jugadores_visitante,
                            estadisticas_guardadas=estadisticas_guardadas,
                            jugadores_suspendidos_ids=jugadores_suspendidos_ids)
+
+
+@admin_bp.route('/subir-documento', methods=['POST'])
+def subir_documento():
+    if session.get('user_rol') not in ['admin', 'delegado']:
+        return redirect(url_for('main.index'))
+
+    if 'archivo' not in request.files:
+        flash('No se seleccionó ningún archivo.', 'danger')
+        return redirect(request.referrer)
+        
+    archivo = request.files['archivo']
+    titulo = request.form.get('titulo')
+    
+    if archivo.filename == '':
+        flash('El archivo no tiene nombre.', 'danger')
+        return redirect(request.referrer)
+        
+    # 1. Obtener el torneo activo, o crear uno por defecto si es la primera vez
+    torneo_activo = Torneo.query.filter_by(estado='Activo').first()
+    if not torneo_activo:
+        torneo_activo = Torneo(nombre="Torneo Principal")
+        db.session.add(torneo_activo)
+        db.session.commit()
+        
+    if archivo and archivo.filename.endswith('.pdf'):
+        filename = secure_filename(archivo.filename)
+        
+        # 2. Asegurar que la carpeta de destino exista antes de guardar
+        directorio_destino = 'app/static/uploads'
+        os.makedirs(directorio_destino, exist_ok=True)
+        
+        ruta_guardado = os.path.join(directorio_destino, filename)
+        archivo.save(ruta_guardado)
+        
+        # 3. Guardar en base de datos vinculando el documento al torneo activo
+        nuevo_doc = DocumentoTorneo(
+            titulo=titulo,
+            archivo=filename,
+            subido_por_rol=session.get('user_rol'),
+            torneo_id=torneo_activo.id, # Solución al error NOT NULL
+            equipo_id=request.form.get('equipo_id') if request.form.get('equipo_id') else None
+        )
+        db.session.add(nuevo_doc)
+        db.session.commit()
+        flash('Documento subido correctamente.', 'success')
+    else:
+        flash('Solo se permiten archivos en formato PDF.', 'danger')
+        
+    return redirect(request.referrer)
+
+
+@admin_bp.route('/eliminar-fixture/<int:categoria_id>', methods=['POST'])
+def eliminar_fixture(categoria_id):
+    if session.get('user_rol') != 'admin':
+        return redirect(url_for('main.index'))
+        
+    # Eliminar todos los partidos (y sus estadísticas en cascada) de esta categoría
+    partidos = Partido.query.filter_by(categoria_id=categoria_id).all()
+    for p in partidos:
+        db.session.delete(p)
+        
+    db.session.commit()
+    flash('El fixture y todos los partidos de esta categoría han sido eliminados. Puedes volver a realizar el sorteo.', 'success')
+    return redirect(url_for('admin.panel'))
+
+from app.models import Torneo
+
+@admin_bp.route('/eliminar-torneo/<int:torneo_id>', methods=['POST'])
+def eliminar_torneo(torneo_id):
+    if session.get('user_rol') != 'admin':
+        return redirect(url_for('main.index'))
+        
+    torneo = Torneo.query.get_or_404(torneo_id)
+    db.session.delete(torneo)
+    db.session.commit()
+    
+    flash('El torneo y toda su información interna han sido eliminados por completo.', 'success')
+    return redirect(url_for('admin.panel'))
+
+
+@admin_bp.route('/eliminar-documento/<int:doc_id>', methods=['POST'])
+def eliminar_documento(doc_id):
+    if session.get('user_rol') != 'admin':
+        return redirect(url_for('main.index'))
+        
+    doc = DocumentoTorneo.query.get_or_404(doc_id)
+    
+    # 1. Eliminar el archivo PDF físico de la carpeta del servidor
+    try:
+        ruta_archivo = os.path.join('app/static/uploads', doc.archivo)
+        if os.path.exists(ruta_archivo):
+            os.remove(ruta_archivo)
+    except Exception as e:
+        pass # Se ignora si el archivo ya no existe físicamente
+        
+    # 2. Eliminar el registro de la base de datos
+    db.session.delete(doc)
+    db.session.commit()
+    
+    flash('Documento eliminado correctamente del sistema.', 'success')
+    return redirect(url_for('admin.panel'))
+
+
+
+@admin_bp.route('/torneo/crear', methods=['POST'])
+def crear_torneo():
+    if session.get('user_rol') != 'admin':
+        return redirect(url_for('main.index'))
+        
+    nombre = request.form.get('nombre')
+    if nombre:
+        # Si es el primer torneo creado, lo activa por defecto
+        hay_activos = Torneo.query.filter_by(estado='Activo').first()
+        estado_inicial = 'Activo' if not hay_activos else 'Finalizado'
+        
+        nuevo_torneo = Torneo(nombre=nombre, estado=estado_inicial)
+        db.session.add(nuevo_torneo)
+        db.session.commit()
+        flash('Torneo creado exitosamente.', 'success')
+        
+    return redirect(url_for('admin.panel'))
+
+@admin_bp.route('/torneo/activar/<int:torneo_id>', methods=['POST'])
+def activar_torneo(torneo_id):
+    if session.get('user_rol') != 'admin':
+        return redirect(url_for('main.index'))
+        
+    # Cambiar todos los torneos a estado Finalizado
+    for t in Torneo.query.all():
+        t.estado = 'Finalizado'
+        
+    # Activar únicamente el seleccionado
+    torneo_seleccionado = Torneo.query.get_or_404(torneo_id)
+    torneo_seleccionado.estado = 'Activo'
+    db.session.commit()
+    
+    flash(f'El campeonato "{torneo_seleccionado.nombre}" es ahora el torneo activo.', 'success')
+    return redirect(url_for('admin.panel'))
+
+# ACTUALIZA TU RUTA DE CREAR CATEGORÍA
+@admin_bp.route('/categoria/crear', methods=['POST'])
+def crear_categoria():
+    if session.get('user_rol') != 'admin': return redirect(url_for('main.index'))
+    nombre = request.form.get('nombre')
+    
+    torneo_activo = Torneo.query.filter_by(estado='Activo').first()
+    
+    if not torneo_activo:
+        flash('Debes crear y activar un torneo antes de agregar categorías.', 'danger')
+        return redirect(url_for('admin.panel'))
+        
+    if nombre:
+        nueva = Categoria(nombre=nombre, torneo_id=torneo_activo.id)
+        db.session.add(nueva)
+        db.session.commit()
+        flash('Categoría creada con éxito.', 'success')
+    return redirect(url_for('admin.panel'))
+
+
+@admin_bp.route('/torneo/vincular-antiguos', methods=['POST'])
+def vincular_antiguos():
+    if session.get('user_rol') != 'admin': 
+        return redirect(url_for('main.index'))
+    
+    torneo_activo = Torneo.query.filter_by(estado='Activo').first()
+    if not torneo_activo:
+        flash('Primero debes crear y activar un torneo.', 'danger')
+        return redirect(url_for('admin.panel'))
+        
+    # Buscar categorías que no tengan torneo o que pertenezcan a ediciones pasadas que quieras trasladar
+    categorias_huerfanas = Categoria.query.filter_by(torneo_id=None).all()
+    
+    if not categorias_huerfanas:
+        flash('No hay categorías pendientes por vincular.', 'info')
+        return redirect(url_for('admin.panel'))
+        
+    for cat in categorias_huerfanas:
+        cat.torneo_id = torneo_activo.id
+        
+    db.session.commit()
+    flash('¡Los equipos y categorías anteriores se han vinculado al torneo activo con éxito!', 'success')
+    return redirect(url_for('admin.panel'))

@@ -1,6 +1,8 @@
+import os
+from werkzeug.utils import secure_filename
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from app.extensions import db
-from app.models import Usuario, Equipo, Jugador, Configuracion, Traspaso
+from app.models import Usuario, Equipo, Jugador, Configuracion, Traspaso, DocumentoTorneo, Torneo
 
 delegado_bp = Blueprint('delegado', __name__)
 
@@ -35,13 +37,20 @@ def panel():
         # Ofertas que este equipo ha realizado a otros
         ofertas_enviadas = Traspaso.query.filter_by(equipo_destino_id=equipo.id).all()
 
+        # Obtener SOLO los documentos que subió el administrador
+        documentos_admin = DocumentoTorneo.query.filter_by(subido_por_rol='admin').all()
+
+        mis_documentos = DocumentoTorneo.query.filter_by(equipo_id=equipo.id).all() if equipo else []
+
     return render_template('delegado/paneldelegado.html', 
                            equipo=equipo, 
                            jugadores=jugadores,
                            mercado=mercado,
                            ofertas_recibidas=ofertas_recibidas,
                            ofertas_enviadas=ofertas_enviadas,
-                           config=config)
+                           config=config,
+                           documentos_admin=documentos_admin,
+                           mis_documentos=mis_documentos)
 
 
 @delegado_bp.route('/agregar-jugador', methods=['POST'])
@@ -112,47 +121,43 @@ def ofertar(jugador_id):
     equipo_destino = Equipo.query.filter_by(usuario_id=session.get('user_id')).first()
     jugador_objetivo = Jugador.query.get_or_404(jugador_id)
 
-    # Validación de seguridad: Asegurar que solo se puede ofertar por deportistas
-    if jugador_objetivo.rol_equipo != 'Deportista':
-        flash('No se pueden realizar ofertas por miembros del cuerpo técnico.', 'danger')
-        return redirect(url_for('delegado.panel'))
-
     if not equipo_destino:
         flash('No tienes un equipo asignado actualmente.', 'danger')
         return redirect(url_for('delegado.panel'))
 
-    # Capturar datos del formulario
+    # VALIDACIÓN LÓGICA: Un equipo no puede fichar a su propio jugador
+    if jugador_objetivo.equipo_id == equipo_destino.id:
+        flash('No puedes realizar una oferta por un jugador que ya pertenece a tu plantilla.', 'danger')
+        return redirect(url_for('delegado.panel'))
+
+    if jugador_objetivo.rol_equipo != 'Deportista':
+        flash('No se pueden realizar ofertas por miembros del cuerpo técnico.', 'danger')
+        return redirect(url_for('delegado.panel'))
+
     tipo = request.form.get('tipo')
     nuevo_fecha_fin = request.form.get('nuevo_fecha_fin')
     jugador_intercambio_id = request.form.get('jugador_intercambio_id')
     mensaje = request.form.get('mensaje')
     
-    # Limpieza del monto ingresado (quitando puntos)
     monto_str = request.form.get('monto', '0')
     monto_limpio = monto_str.replace('.', '').replace(' ', '')
     try:
         monto_ofrecido = float(monto_limpio)
+        if monto_ofrecido < 0:
+            raise ValueError
     except ValueError:
-        monto_ofrecido = 0.0
+        flash('El monto ingresado no es válido.', 'danger')
+        return redirect(url_for('delegado.panel'))
 
-    # NUEVA LÓGICA DE NEGOCIO: Sumar cláusula solo si es Compra
     valor_clausula = jugador_objetivo.clausula_rescision or 0.0
-    
-    if tipo == 'Compra':
-        monto_final = monto_ofrecido + valor_clausula
-    else:
-        monto_final = monto_ofrecido # En préstamos no se cobra la cláusula
+    monto_final = (monto_ofrecido + valor_clausula) if tipo == 'Compra' else monto_ofrecido
 
-    # Validar jugador de intercambio
     if jugador_intercambio_id:
         j_intercambio = Jugador.query.get(jugador_intercambio_id)
-        if not j_intercambio or j_intercambio.rol_equipo != 'Deportista':
-            flash('El jugador seleccionado para intercambio no es válido.', 'danger')
+        if not j_intercambio or j_intercambio.equipo_id != equipo_destino.id:
+            flash('El jugador ofrecido para intercambio no pertenece a tu plantilla.', 'danger')
             return redirect(url_for('delegado.panel'))
-    else:
-        jugador_intercambio_id = None
 
-    # Crear el traspaso con el MONTO FINAL calculado
     nuevo_traspaso = Traspaso(
         jugador_id=jugador_objetivo.id,
         equipo_origen_id=jugador_objetivo.equipo_id,
@@ -160,7 +165,7 @@ def ofertar(jugador_id):
         tipo=tipo,
         monto=monto_final,
         nuevo_fecha_fin=nuevo_fecha_fin,
-        jugador_intercambio_id=jugador_intercambio_id,
+        jugador_intercambio_id=int(jugador_intercambio_id) if jugador_intercambio_id else None,
         mensaje_negociacion=mensaje,
         estado='Pendiente'
     )
@@ -259,4 +264,75 @@ def responder_oferta(oferta_id):
             flash('Rechazaste la contraoferta.', 'info')
 
     db.session.commit()
+    return redirect(url_for('delegado.panel'))
+
+
+@delegado_bp.route('/subir-documento', methods=['POST'])
+def subir_documento():
+    if session.get('user_rol') not in ['delegado', 'admin']: 
+        return redirect(url_for('main.index'))
+        
+    equipo = Equipo.query.filter_by(usuario_id=session.get('user_id')).first()
+    if not equipo:
+        flash('No tienes un equipo asignado para subir reportes.', 'danger')
+        return redirect(request.referrer)
+
+    archivo = request.files.get('archivo')
+    titulo = request.form.get('titulo')
+
+    if not archivo or archivo.filename == '':
+        flash('Archivo no válido.', 'danger')
+        return redirect(request.referrer)
+
+    torneo_activo = Torneo.query.filter_by(estado='Activo').first()
+    if not torneo_activo:
+        torneo_activo = Torneo(nombre="Torneo Principal")
+        db.session.add(torneo_activo)
+        db.session.commit()
+
+    if archivo and archivo.filename.endswith('.pdf'):
+        filename = secure_filename(archivo.filename)
+        directorio_destino = 'app/static/uploads'
+        os.makedirs(directorio_destino, exist_ok=True)
+        archivo.save(os.path.join(directorio_destino, filename))
+        
+        nuevo_doc = DocumentoTorneo(
+            titulo=titulo,
+            archivo=filename,
+            subido_por_rol='delegado',
+            torneo_id=torneo_activo.id,
+            equipo_id=equipo.id
+        )
+        db.session.add(nuevo_doc)
+        db.session.commit()
+        flash('Reporte enviado correctamente al Administrador.', 'success')
+    else:
+        flash('Solo se admiten documentos en formato PDF.', 'danger')
+        
+    return redirect(request.referrer)
+
+@delegado_bp.route('/eliminar-documento/<int:doc_id>', methods=['POST'])
+def eliminar_documento(doc_id):
+    if session.get('user_rol') not in ['delegado', 'admin']:
+        return redirect(url_for('main.index'))
+        
+    doc = DocumentoTorneo.query.get_or_404(doc_id)
+    equipo = Equipo.query.filter_by(usuario_id=session.get('user_id')).first()
+    
+    # Validar estrictamente que el documento pertenezca al equipo del delegado actual
+    if not equipo or doc.equipo_id != equipo.id:
+        flash('No tienes permiso para eliminar este documento.', 'danger')
+        return redirect(url_for('delegado.panel'))
+        
+    try:
+        ruta_archivo = os.path.join('app/static/uploads', doc.archivo)
+        if os.path.exists(ruta_archivo):
+            os.remove(ruta_archivo)
+    except Exception as e:
+        pass
+        
+    db.session.delete(doc)
+    db.session.commit()
+    
+    flash('Tu reporte fue eliminado y retirado de la vista del administrador.', 'success')
     return redirect(url_for('delegado.panel'))

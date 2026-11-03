@@ -21,7 +21,7 @@ def create_app(config_class=Config):
     from app.blueprints.delegado_bp import delegado_bp
     # from app.blueprints.futbol_bp import futbol_bp
     # from app.blueprints.yeimi_bp import yeimi_bp
-    # from app.blueprints.fifa27_bp import fifa27_bp
+    from app.blueprints.fifa_bp import fifa_bp
     from app.blueprints.main_bp import main_bp
 
     app.register_blueprint(auth_bp, url_prefix='/auth')
@@ -29,7 +29,7 @@ def create_app(config_class=Config):
     app.register_blueprint(admin_bp, url_prefix='/admin')
     # app.register_blueprint(futbol_bp, url_prefix='/futbol')
     # app.register_blueprint(yeimi_bp, url_prefix='/yeimi')
-    # app.register_blueprint(fifa27_bp, url_prefix='/fifa27')
+    app.register_blueprint(fifa_bp, url_prefix='/fifa')
     app.register_blueprint(main_bp)
 
     # Ruta de validación para confirmar que el servidor levanta correctamente

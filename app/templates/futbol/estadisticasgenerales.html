@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Estadísticas del Torneo{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="fw-bold text-dark mb-4">Estadísticas Generales del Torneo</h2>
+
+    <ul class="nav nav-tabs mb-4" id="statsTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-semibold" id="goles-tab" data-bs-toggle="tab" data-bs-target="#goles-content" type="button" role="tab">Goleadores</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-semibold" id="asistencias-tab" data-bs-toggle="tab" data-bs-target="#asistencias-content" type="button" role="tab">Asistencias</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-semibold" id="fairplay-tab" data-bs-toggle="tab" data-bs-target="#fairplay-content" type="button" role="tab">Fair-Play (Juego Limpio)</button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="statsTabContent">
+        <!-- Goleadores -->
+        <div class="tab-pane fade show active" id="goles-content" role="tabpanel">
+            <div class="card border-0 shadow-sm p-4">
+                <table class="table table-hover align-middle text-center">
+                    <thead class="table-dark">
+                        <tr>
+                            <th class="text-start">Jugador</th>
+                            <th class="text-start">Equipo</th>
+                            <th>Goles</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for j, goles in goleadores %}
+                        <tr>
+                            <td class="text-start fw-bold">{{ j.nombre }}</td>
+                            <td class="text-start">{{ j.equipo.nombre if j.equipo else 'Sin Equipo' }}</td>
+                            <td><span class="badge bg-primary fs-6">{{ goles }}</span></td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="3" class="text-muted py-4">No hay registros de goles aún.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Asistencias -->
+        <div class="tab-pane fade" id="asistencias-content" role="tabpanel">
+            <div class="card border-0 shadow-sm p-4">
+                <table class="table table-hover align-middle text-center">
+                    <thead class="table-dark">
+                        <tr>
+                            <th class="text-start">Jugador</th>
+                            <th class="text-start">Equipo</th>
+                            <th>Asistencias</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for j, asis in asistentes %}
+                        <tr>
+                            <td class="text-start fw-bold">{{ j.nombre }}</td>
+                            <td class="text-start">{{ j.equipo.nombre if j.equipo else 'Sin Equipo' }}</td>
+                            <td><span class="badge bg-secondary fs-6">{{ asis }}</span></td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="3" class="text-muted py-4">No hay registros de asistencias aún.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Fair-Play -->
+        <div class="tab-pane fade" id="fairplay-content" role="tabpanel">
+            <div class="card border-0 shadow-sm p-4">
+                <table class="table table-hover align-middle text-center">
+                    <thead class="table-dark">
+                        <tr>
+                            <th class="text-start">Equipo</th>
+                            <th class="text-warning">Tarjetas Amarillas</th>
+                            <th class="text-danger">Tarjetas Rojas</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for eq, amarillas, rojas in fair_play %}
+                        <tr>
+                            <td class="text-start fw-bold">{{ eq.nombre }}</td>
+                            <td><span class="badge bg-warning text-dark">{{ amarillas or 0 }}</span></td>
+                            <td><span class="badge bg-danger">{{ rojas or 0 }}</span></td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="3" class="text-muted py-4">No hay amonestaciones registradas aún.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

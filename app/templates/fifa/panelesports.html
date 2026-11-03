@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Panel eSports - Consola{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-success">Panel de Podios - eSports y Consola</h2>
+            <p class="text-muted mb-0">Torneo Activo: <span class="fw-bold text-dark">{{ torneo_activo.nombre if torneo_activo else 'Ninguno' }}</span></p>
+        </div>
+        <a href="{{ url_for('admin.panel') }}" class="btn btn-outline-dark fw-bold">Ir al Panel General de Fútbol</a>
+    </div>
+
+    <div class="card border-0 shadow-sm p-4 mb-4 bg-light">
+        <h4 class="mb-3 fw-bold">Selección de Podios por Categoría</h4>
+        <p class="text-muted small">Elige a los ganadores directamente de la lista de participantes inscritos en cada categoría (puedes crear categorías de eSports desde el panel general).</p>
+
+        {% for cat in categorias %}
+        <div class="card mb-4 border shadow-sm">
+            <div class="card-header bg-dark text-white fw-bold">
+                Categoría: {{ cat.nombre }} ({{ cat.equipos|length }} Participantes inscritos)
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('fifa.guardar_podio', categoria_id=cat.id) }}" class="row g-3">
+    
+    <!-- Campeón -->
+    <div class="col-md-4">
+        <label class="form-label small fw-bold text-warning">Campeón (1er Puesto)</label>
+        <select name="campeon" class="form-select border-warning" required>
+            <option value="">-- Seleccionar participante --</option>
+            {% for eq in cat.equipos %}
+                <option value="{{ eq.nombre }}" {% if cat.podio and cat.podio.campeon == eq.nombre %}selected{% endif %}>{{ eq.nombre }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- Subcampeón -->
+    <div class="col-md-4">
+        <label class="form-label small fw-bold text-secondary">Subcampeón (2do Puesto)</label>
+        <select name="subcampeon" class="form-select border-secondary" required>
+            <option value="">-- Seleccionar participante --</option>
+            {% for eq in cat.equipos %}
+                <option value="{{ eq.nombre }}" {% if cat.podio and cat.podio.subcampeon == eq.nombre %}selected{% endif %}>{{ eq.nombre }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- Tercer Puesto -->
+    <div class="col-md-4">
+        <label class="form-label small fw-bold text-danger">Tercer Puesto</label>
+        <select name="tercer_puesto" class="form-select border-danger">
+            <option value="">-- Seleccionar participante (Opcional) --</option>
+            {% for eq in cat.equipos %}
+                <option value="{{ eq.nombre }}" {% if cat.podio and cat.podio.tercer_puesto == eq.nombre %}selected{% endif %}>{{ eq.nombre }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- Botones de acción separados correctamente con formaction -->
+    <div class="col-12 d-flex justify-content-between align-items-center mt-3">
+        <!-- Si ya hay un podio guardado, mostramos el botón de eliminar -->
+        {% if cat.podio %}
+        <button type="submit" 
+                formaction="{{ url_for('fifa.eliminar_podio', categoria_id=cat.id) }}" 
+                class="btn btn-sm btn-outline-danger fw-bold" 
+                onclick="return confirm('¿Estás seguro de eliminar el podio registrado para esta categoría?');">
+            Eliminar Podio
+        </button>
+        {% else %}
+        <div></div>
+        {% endif %}
+
+        <button type="submit" class="btn btn-success fw-bold px-4">Guardar Podio</button>
+    </div>
+</form>
+            </div>
+        </div>
+        {% else %}
+        <div class="alert alert-warning text-center">
+            No hay categorías registradas en el torneo activo. Recuerda crear una categoría (ej. "eSports") desde el panel de administración para poder listar los participantes aquí.
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
