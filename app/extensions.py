@@ -1,4 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
+from flask_mail import Mail
 from flask_migrate import Migrate
 from authlib.integrations.flask_client import OAuth
 from sqlalchemy import MetaData # <-- Se importa desde sqlalchemy, no desde flask_sqlalchemy
@@ -13,5 +14,16 @@ naming_convention = {
 }
 
 db = SQLAlchemy(metadata=MetaData(naming_convention=naming_convention))
+mail = Mail()
 migrate = Migrate()
 oauth = OAuth()
+
+
+# Registro del proveedor de Google
+oauth.register(
+    name='google',
+    server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+    client_kwargs={
+        'scope': 'openid email profile'
+    }
+)

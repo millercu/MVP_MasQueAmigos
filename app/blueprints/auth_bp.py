@@ -1,8 +1,12 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from werkzeug.security import generate_password_hash, check_password_hash
 import re
-from app.extensions import db
+import secrets
+from flask_mail import Message
+from app.extensions import db, mail, oauth
+from email.header import Header
 from app.models import Usuario
+from datetime import datetime, timedelta
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -72,6 +76,57 @@ def registro():
 
     return render_template('auth/registro.html')
 
+
+@auth_bp.route('/login/google')
+def login_google():
+    redirect_uri = url_for('auth.authorize_google', _external=True)
+    return oauth.google.authorize_redirect(redirect_uri)
+
+@auth_bp.route('/login/google/authorize')
+def authorize_google():
+    token = oauth.google.authorize_access_token()
+    user_info = token.get('userinfo')
+    
+    if user_info:
+        email = user_info['email']
+        nombres = user_info['name']
+        
+        usuario = Usuario.query.filter_by(email=email).first()
+        
+        # Si el usuario de Google no existe en nuestra base de datos, lo registramos automáticamente
+        if not usuario:
+            nuevo_usuario = Usuario(
+                nombres=nombres,
+                tipo_documento='PG', # Pasaporte Google / Placeholder
+                documento=f"G-{secrets.token_hex(4).upper()}", # Documento aleatorio temporal
+                telefono='0000000000',
+                fecha_nacimiento='2000-01-01',
+                email=email,
+                password_hash=generate_password_hash(secrets.token_urlsafe(16)), # Contraseña inaccesible
+                rol='usuario'
+            )
+            db.session.add(nuevo_usuario)
+            db.session.commit()
+            usuario = nuevo_usuario
+        
+        # Iniciar sesión
+        session['user_id'] = usuario.id
+        session['user_nombre'] = usuario.nombres
+        session['user_email'] = usuario.email
+        session['user_rol'] = usuario.rol
+
+        flash(f'Sesión iniciada correctamente con Google, {usuario.nombres}', 'success')
+        
+        if usuario.rol == 'admin':
+            return redirect(url_for('admin.panel'))
+        elif usuario.rol == 'delegado':
+            return redirect(url_for('delegado.panel'))
+        else:
+            return redirect(url_for('main.index'))
+            
+    flash('Error al intentar iniciar sesión con Google.', 'danger')
+    return redirect(url_for('auth.login'))
+
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -100,6 +155,77 @@ def login():
             flash('Correo o contraseña incorrectos.', 'danger')
 
     return render_template('auth/login.html')
+
+
+import secrets
+from datetime import datetime, timedelta
+from flask_mail import Message
+from app.extensions import mail, db
+
+@auth_bp.route('/solicitar-recuperacion', methods=['GET', 'POST'])
+def solicitar_recuperacion():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        usuario = Usuario.query.filter_by(email=email).first()
+        
+        if usuario:
+            # Generar token único de 32 caracteres y expiración de 1 hora
+            token = secrets.token_urlsafe(32)
+            usuario.reset_token = token
+            usuario.token_expiracion = datetime.utcnow() + timedelta(hours=1)
+            db.session.commit()
+            
+            # Crear y enviar el correo con codificación segura ASCII en el asunto y UTF-8 en el cuerpo
+            enlace = url_for('auth.reset_password', token=token, _external=True)
+            
+            msg = Message(
+                subject='Recuperacion de Contrasena - Copa Mas Que Amigos', # Sin tildes ni eñes en el asunto para evitar bloqueos SMTP
+                sender='tu_correo@gmail.com', # Mismo correo de tu configuración
+                recipients=[email]
+            )
+            
+            # Cuerpo codificado explícitamente en bytes UTF-8
+            cuerpo_texto = f"Hola {usuario.nombres},\n\nPara restablecer tu contraseña haz clic en el siguiente enlace:\n{enlace}\n\nEste enlace expirará en 1 hora."
+            msg.body = cuerpo_texto
+            
+            # Forzamos el envío limpio
+            mail.send(msg)
+            
+        # Mensaje genérico por seguridad
+        flash('Si el correo existe en nuestro sistema, hemos enviado las instrucciones.', 'info')
+        return redirect(url_for('auth.login'))
+        
+    return render_template('auth/solicitar.html')
+
+@auth_bp.route('/reset-password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    usuario = Usuario.query.filter_by(reset_token=token).first()
+    
+    # Validar que el token exista y no esté vencido
+    if not usuario or usuario.token_expiracion < datetime.utcnow():
+        flash('El enlace es inválido o ha expirado.', 'danger')
+        return redirect(url_for('auth.solicitar_recuperacion'))
+        
+    if request.method == 'POST':
+        nuevo_pass = request.form.get('password')
+        
+        # Reutilizamos tu validador de contraseña segura
+        error_pass = es_contrasena_segura(nuevo_pass)
+        if error_pass:
+            flash(error_pass, 'danger')
+            return redirect(url_for('auth.reset_password', token=token))
+            
+        usuario.password_hash = generate_password_hash(nuevo_pass)
+        usuario.reset_token = None
+        usuario.token_expiracion = None
+        db.session.commit()
+        
+        flash('Tu contraseña ha sido actualizada correctamente. Ya puedes iniciar sesión.', 'success')
+        return redirect(url_for('auth.login'))
+        
+    return render_template('auth/reset.html', token=token)
+
+
 
 @auth_bp.route('/logout')
 def logout():

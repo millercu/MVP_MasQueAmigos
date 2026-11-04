@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request
-from app.models import Traspaso, Configuracion, Categoria, Partido, Torneo, EstadisticaPartido, Jugador, Equipo
+from app.models import Traspaso, Configuracion, Categoria, Partido, Torneo, EstadisticaPartido, Jugador, Equipo, Carrusel, Patrocinador
 from sqlalchemy import func
 from app.extensions import db
 
@@ -39,11 +39,17 @@ def index():
     else:
         categorias, partidos_jugados = [], []
 
+
+    carrusel_imagenes = Carrusel.query.order_by(Carrusel.orden.asc()).all()
+    patrocinadores = Patrocinador.query.all()
+
     return render_template('index.html', 
                            categorias=categorias, 
                            partidos_jugados=partidos_jugados,
                            torneos=torneos,
-                           torneo_seleccionado=torneo_seleccionado)
+                           torneo_seleccionado=torneo_seleccionado,
+                           carrusel_imagenes=carrusel_imagenes,
+                           patrocinadores=patrocinadores)
 
 @main_bp.route('/historial-fichajes')
 def historial_fichajes():

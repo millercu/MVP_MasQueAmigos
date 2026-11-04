@@ -9,8 +9,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     
     <!-- Hoja de estilos personalizada -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='static/css/styles.css') }}">
-</head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"></head>
 <body>
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -40,6 +39,10 @@
 
                 <li class="nav-item">
                     <a class="nav-link text-success fw-bold" href="{{ url_for('fifa.panel') }}">Panel eSports</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-primary fw-bold" href="{{ url_for('yeimi.panel') }}">Panel Yeimi</a>
                 </li>
                 {% endif %}
 
@@ -108,11 +111,17 @@
     </main>
 
     <!-- Pie de página -->
-    <footer class="footer-bagado">
-        <div class="container">
-            <p class="mb-0">By Miller Cuesta - Copa Más Que Amigos Bagadó &copy; 2026</p>
+    <!-- 4. Footer de Patrocinadores (Añadir al final del index o base.html) -->
+    <div class="footer-sponsor text-center">
+        <h5 class="fw-bold text-muted mb-3">Nuestros Patrocinadores</h5>
+        <div class="d-flex justify-content-center gap-4 flex-wrap">
+            {% for pat in patrocinadores %}
+            <a href="{{ pat.enlace }}" target="_blank" title="{{ pat.nombre }}">
+                <img src="{{ url_for('static', filename='uploads/' ~ pat.logo) }}" alt="{{ pat.nombre }}" class="sponsor-logo shadow-sm">
+            </a>
+            {% endfor %}
         </div>
-    </footer>
+    </div>
 
     <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

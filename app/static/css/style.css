@@ -86,3 +86,52 @@ main {
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.05);
 }
+
+
+/* Carrusel Principal */
+.slider-img { 
+    height: 400px; 
+    width: 100%; 
+    object-fit: contain; /* Ajusta la foto completa sin recortarla */
+    background-color: #212529; /* Fondo oscuro para los espacios vacíos */
+    border-radius: 8px; 
+}
+
+/* Escudos de Equipos */
+.escudo-sm { 
+    width: 30px; 
+    height: 30px; 
+    object-fit: contain; /* Para que el escudo no se recorte */
+    border-radius: 50%; /* Opcional, si quieres que sean redondos */
+}
+.escudo-md { 
+    width: 60px; 
+    height: 60px; 
+    object-fit: contain; 
+}
+.escudo-lg { 
+    width: 120px; 
+    height: 120px; 
+    object-fit: contain; 
+}
+
+/* Patrocinadores Footer */
+.footer-sponsor {
+    padding: 20px 0;
+    background-color: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+    margin-top: auto; /* IMPORTANTE: Ayuda a empujar el footer hacia abajo */
+    width: 100%;
+}
+.sponsor-logo {
+    width: 60px;
+    height: 60px;
+    object-fit: contain; /* Cambiado a contain para que los logos no se recorten */
+    border-radius: 50%;
+    border: 2px solid #0d6efd;
+    transition: transform 0.3s ease;
+    background-color: white; /* Añadido por si el logo tiene fondo transparente */
+}
+.sponsor-logo:hover {
+    transform: scale(1.1);
+}

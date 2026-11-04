@@ -59,6 +59,13 @@
     <li class="nav-item" role="presentation">
     <button class="nav-link fw-semibold text-success" id="torneos-tab" data-bs-toggle="tab" data-bs-target="#torneos-content" type="button" role="tab">Gestión de Torneos</button>
     </li>
+
+    <li class="nav-item" role="presentation">
+        <button class="nav-link fw-semibold" id="carrusel-tab" data-bs-toggle="tab" data-bs-target="#carrusel-content" type="button" role="tab">Carrusel</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link fw-semibold" id="patrocinadores-tab" data-bs-toggle="tab" data-bs-target="#patrocinadores-content" type="button" role="tab">Patrocinadores</button>
+    </li>
 </ul>
 
     <!-- Contenido de las pestañas -->
@@ -354,6 +361,7 @@
                             <thead class="table-dark">
                                 <tr>
                                     <th>Nombre</th>
+                                    <th>Tipo Documento</th>
                                     <th>Documento</th>
                                     <th>Rol</th>
                                     <th>Posición</th>
@@ -365,6 +373,7 @@
                                 {% for j in jugadores %}
                                 <tr>
                                     <td class="fw-bold">{{ j.nombre }}</td>
+                                    <td><span class="badge bg-light text-dark border">{{ j.tipo_documento or 'CC' }}</td>
                                     <td>{{ j.documento }}</td>
                                     <td>{{ j.rol_equipo }}</td>
                                     <td>{{ j.posicion or '-' }}</td>
@@ -767,6 +776,97 @@
                 </div>
             </div>
         </div>
+
+
+        <!-- Pestaña Carrusel -->
+<div class="tab-pane fade" id="carrusel-content" role="tabpanel">
+    <div class="card border-0 shadow-sm p-4 mb-4">
+        <h4 class="mb-3 fw-bold">Gestión del Carrusel de Imágenes</h4>
+        <form action="{{ url_for('admin.subir_carrusel') }}" method="POST" enctype="multipart/form-data" class="row g-2 mb-4">
+            <div class="col-md-8">
+                <input type="file" name="imagen" class="form-control" accept="image/*" required>
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-dark w-100">Subir Imagen</button>
+            </div>
+        </form>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Imagen</th>
+                        <th>Ruta</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for img in carrusel_imagenes %}
+                    <tr>
+                        <td><img src="{{ url_for('static', filename='uploads/' ~ img.imagen) }}" alt="Carrusel" class="escudo-md rounded"></td>
+                        <td class="text-muted small">{{ img.imagen }}</td>
+                        <td>
+                            <form action="{{ url_for('admin.eliminar_carrusel', id=img.id) }}" method="POST">
+                                <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="3" class="text-center text-muted">No hay imágenes en el carrusel.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Pestaña Patrocinadores -->
+<div class="tab-pane fade" id="patrocinadores-content" role="tabpanel">
+    <div class="card border-0 shadow-sm p-4 mb-4">
+        <h4 class="mb-3 fw-bold">Gestión de Patrocinadores</h4>
+        <form action="{{ url_for('admin.subir_patrocinador') }}" method="POST" enctype="multipart/form-data" class="row g-2 mb-4">
+            <div class="col-md-4">
+                <input type="text" name="nombre" class="form-control" placeholder="Nombre del patrocinador" required>
+            </div>
+            <div class="col-md-3">
+                <input type="url" name="enlace" class="form-control" placeholder="Enlace web o red social" required>
+            </div>
+            <div class="col-md-3">
+                <input type="file" name="logo" class="form-control" accept="image/*" required>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-dark w-100">Agregar</button>
+            </div>
+        </form>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Logo</th>
+                        <th>Nombre</th>
+                        <th>Enlace</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pat in patrocinadores %}
+                    <tr>
+                        <td><img src="{{ url_for('static', filename='uploads/' ~ pat.logo) }}" alt="{{ pat.nombre }}" class="sponsor-logo"></td>
+                        <td class="fw-bold">{{ pat.nombre }}</td>
+                        <td><a href="{{ pat.enlace }}" target="_blank" class="text-primary small">{{ pat.enlace }}</a></td>
+                        <td>
+                            <form action="{{ url_for('admin.eliminar_patrocinador', id=pat.id) }}" method="POST">
+                                <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="4" class="text-center text-muted">No hay patrocinadores registrados.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
     </div>
 

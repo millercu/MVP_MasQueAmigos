@@ -1,5 +1,6 @@
+import secrets
 from app.extensions import db
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 
 class Torneo(db.Model):
     __tablename__ = 'torneo'
@@ -26,6 +27,14 @@ class Usuario(db.Model):
     
     equipo = db.relationship('Equipo', backref='delegado_asignado', uselist=False)
 
+    reset_token = db.Column(db.String(100), unique=True, nullable=True)
+    token_expiracion = db.Column(db.DateTime, nullable=True)
+
+    def generar_token_recuperacion(self):
+        self.reset_token = secrets.token_urlsafe(32)
+        self.token_expiracion = datetime.utcnow() + timedelta(hours=1)
+        return self.reset_token
+
 
 class Categoria(db.Model):
     __tablename__ = 'categoria'
@@ -41,7 +50,7 @@ class Equipo(db.Model):
     __tablename__ = 'equipo'
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(120), nullable=False, unique=True)
-    
+    escudo = db.Column(db.String(255), nullable=True, default='default_escudo.png')    
     # Llave foránea para la categoría
     categoria_id = db.Column(db.Integer, db.ForeignKey('categoria.id'), nullable=True)
     
@@ -52,17 +61,36 @@ class Equipo(db.Model):
     jugadores = db.relationship('Jugador', backref='equipo', lazy=True, cascade='all, delete-orphan')
 
 
+class Carrusel(db.Model):
+    __tablename__ = 'carrusel'
+    id = db.Column(db.Integer, primary_key=True)
+    imagen = db.Column(db.String(255), nullable=False)
+    orden = db.Column(db.Integer, default=0)
+
+
+
+class Patrocinador(db.Model):
+    __tablename__ = 'patrocinador'
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(100), nullable=False)
+    logo = db.Column(db.String(255), nullable=False)
+    enlace = db.Column(db.String(255), nullable=False)
+
+
+
 class Jugador(db.Model):
     __tablename__ = 'jugador'
     
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(120), nullable=False)
+    tipo_documento = db.Column(db.String(10), nullable=True, default='CC')
     documento = db.Column(db.String(30), nullable=False)
     eps = db.Column(db.String(50), nullable=True)
     rol_equipo = db.Column(db.String(30), nullable=False) # Deportista, DT, etc.
     fecha_inicio = db.Column(db.String(20), nullable=True)
     fecha_fin = db.Column(db.String(20), nullable=True)
     posicion = db.Column(db.String(30), nullable=True)
+    foto = db.Column(db.String(255), nullable=True)
     
     # CAMBIO IMPORTANTE: Lo pasamos a nullable=True para permitir jugadores "Libres"
     equipo_id = db.Column(db.Integer, db.ForeignKey('equipo.id'), nullable=True)
@@ -186,3 +214,18 @@ class PodioEsports(db.Model):
     
     # Relación para acceder fácil desde la categoría
     categoria = db.relationship('Categoria', backref=db.backref('podio', uselist=False, cascade='all, delete-orphan'))
+
+
+
+class PodioYeimi(db.Model):
+    __tablename__ = 'podio_yeimi'
+    id = db.Column(db.Integer, primary_key=True)
+    categoria_id = db.Column(db.Integer, db.ForeignKey('categoria.id'), nullable=False, unique=True)
+    campeon_id = db.Column(db.Integer, db.ForeignKey('equipo.id'), nullable=True)
+    subcampeon_id = db.Column(db.Integer, db.ForeignKey('equipo.id'), nullable=True)
+    tercer_puesto_id = db.Column(db.Integer, db.ForeignKey('equipo.id'), nullable=True)
+    
+    categoria = db.relationship('Categoria', backref=db.backref('podio_yeimi', uselist=False, cascade='all, delete-orphan'))
+    campeon = db.relationship('Equipo', foreign_keys=[campeon_id])
+    subcampeon = db.relationship('Equipo', foreign_keys=[subcampeon_id])
+    tercer_puesto = db.relationship('Equipo', foreign_keys=[tercer_puesto_id])

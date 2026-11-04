@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Panel Yeimi{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-primary">Panel de Podios - Torneo de Yeimi</h2>
+            <p class="text-muted mb-0">Selecciona los equipos oficiales ganadores.</p>
+        </div>
+        <a href="{{ url_for('admin.panel') }}" class="btn btn-outline-dark fw-bold">Volver al Panel Principal</a>
+    </div>
+
+    <div class="card border-0 shadow-sm p-4 mb-4 bg-light">
+        {% for cat in categorias %}
+        <div class="card mb-4 border shadow-sm">
+            <div class="card-header bg-dark text-white fw-bold">
+                Categoría: {{ cat.nombre }} ({{ cat.equipos|length }} Equipos inscritos)
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('yeimi.guardar_podio', categoria_id=cat.id) }}" class="row g-3">
+                    
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold text-warning">Campeón (1er Puesto)</label>
+                        <select name="campeon_id" class="form-select border-warning" required>
+                            <option value="">-- Seleccionar equipo --</option>
+                            {% for eq in cat.equipos %}
+                                <option value="{{ eq.id }}" {% if cat.podio_yeimi and cat.podio_yeimi.campeon_id == eq.id %}selected{% endif %}>{{ eq.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold text-secondary">Subcampeón (2do Puesto)</label>
+                        <select name="subcampeon_id" class="form-select border-secondary" required>
+                            <option value="">-- Seleccionar equipo --</option>
+                            {% for eq in cat.equipos %}
+                                <option value="{{ eq.id }}" {% if cat.podio_yeimi and cat.podio_yeimi.subcampeon_id == eq.id %}selected{% endif %}>{{ eq.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold text-danger">Tercer Puesto</label>
+                        <select name="tercer_puesto_id" class="form-select border-danger">
+                            <option value="">-- Seleccionar equipo (Opcional) --</option>
+                            {% for eq in cat.equipos %}
+                                <option value="{{ eq.id }}" {% if cat.podio_yeimi and cat.podio_yeimi.tercer_puesto_id == eq.id %}selected{% endif %}>{{ eq.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-12 text-end mt-3">
+                        <button type="submit" class="btn btn-primary fw-bold px-4">Guardar Podio de Yeimi</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% else %}
+        <div class="alert alert-warning text-center">
+            No hay categorías registradas que contengan la palabra "Yeimi".
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

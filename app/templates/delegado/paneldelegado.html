@@ -46,31 +46,40 @@
                 <!-- Formulario real para agregar jugador -->
             <div class="card border-0 shadow-sm p-4 mb-4 bg-light">
                 <h5 class="mb-3 text-dark fw-bold">Inscribir Nuevo Integrante</h5>
-                <form method="POST" action="{{ url_for('delegado.agregar_jugador') }}">
+                <form method="POST" action="{{ url_for('delegado.agregar_jugador') }}" enctype="multipart/form-data">
                     <div class="row">
                         <div class="col-md-3 mb-3">
                             <label class="form-label fw-semibold small">Nombre Completo</label>
                             <input type="text" name="nombre" class="form-control form-control-sm" required>
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <label class="form-label fw-semibold small">Tipo Documento</label>
+                            <select name="tipo_documento" class="form-select form-select-sm" required>
+                                <option value="CC" {% if j and j.tipo_documento == 'CC' %}selected{% endif %}>CC</option>
+                                <option value="TI" {% if j and j.tipo_documento == 'TI' %}selected{% endif %}>TI</option>
+                                <option value="CE" {% if j and j.tipo_documento == 'CE' %}selected{% endif %}>CE</option>
+                                <option value="Pasaporte" {% if j and j.tipo_documento == 'Pasaporte' %}selected{% endif %}>Pasaporte</option>
+                            </select>
                         </div>
                         <div class="col-md-3 mb-3">
                             <label class="form-label fw-semibold small">N° Documento</label>
                             <input type="text" name="documento" class="form-control form-control-sm" required>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <label class="form-label fw-semibold small">EPS (Opcional)</label>
+                            <label class="form-label fw-semibold small">EPS</label>
                             <input type="text" name="eps" class="form-control form-control-sm">
                         </div>
                         <div class="col-md-3 mb-3">
                             <label class="form-label fw-semibold small">Rol en Equipo</label>
-                            <select name="rol_equipo" class="form-select form-select-sm" required>
-                                <option value="Deportista">Deportista</option>
-                                <option value="Cuerpo Tecnico">Cuerpo Técnico</option>
-                                <option value="Delegado">Delegado</option>
+                            <select name="rol_equipo" class="form-select form-select-sm selector-rol" required onchange="togglePosicion(this)">
+                                <option value="Deportista" {% if j and j.rol_equipo == 'Deportista' %}selected{% endif %}>Deportista</option>
+                                <option value="Cuerpo Tecnico" {% if j and j.rol_equipo == 'Cuerpo Tecnico' %}selected{% endif %}>Cuerpo Técnico</option>
+                                <option value="Delegado" {% if j and j.rol_equipo == 'Delegado' %}selected{% endif %}>Delegado</option>
                             </select>
                         </div>
-                        <div class="col-md-3 mb-3">
+                        <div class="col-md-3 mb-3 posicion-container">
                             <label class="form-label fw-semibold small">Posición</label>
-                            <input type="text" name="posicion" class="form-control form-control-sm" placeholder="Ej. Delantero">
+                            <input type="text" name="posicion" class="form-control form-control-sm input-posicion" placeholder="Ej. Delantero" value="{{ j.posicion if j else '' }}">
                         </div>
                         <div class="col-md-3 mb-3">
                             <label class="form-label fw-semibold small">Inicio Contrato</label>
@@ -84,6 +93,11 @@
                             <label class="form-label fw-semibold small">Cláusula Rescisión ($)</label>
                             <input type="text" name="clausula_rescision" class="form-control form-control-sm" placeholder="Ej: 2.000.000" value="0">                        </div>
                     </div>
+
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label fw-semibold small">Foto del Jugador</label>
+                        <input type="file" name="foto" class="form-control form-control-sm" accept="image/*">
+                    </div>
                     <div class="d-flex justify-content-end">
                         <button type="submit" class="btn btn-success fw-bold px-4">Registrar en Plantilla</button>
                     </div>
@@ -94,7 +108,9 @@
                     <table class="table table-hover align-middle">
                         <thead class="table-dark">
                             <tr>
+                                <th>Foto</th>
                                 <th>Nombre</th>
+                                <th>Tipo Documento</th>
                                 <th>Documento</th>
                                 <th>EPS</th>
                                 <th>Rol</th>
@@ -108,7 +124,19 @@
                         <tbody>
                             {% for j in jugadores %}
                             <tr>
+                                <td>
+                                    {% if j.foto %}
+                                        <img src="{{ url_for('static', filename='uploads/' ~ j.foto) }}" class="escudo-sm shadow-sm" alt="Foto">
+                                    {% else %}
+                                        <!-- Avatar por defecto -->
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="#ccc" class="bi bi-person-circle" viewBox="0 0 16 16">
+                                        <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
+                                        <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/>
+                                        </svg>
+                                    {% endif %}
+                                </td>
                                 <td class="fw-bold">{{ j.nombre }}</td>
+                                <td><span class="badge bg-light text-dark border">{{ j.tipo_documento or 'CC' }}</td>
                                 <td>{{ j.documento }}</td>
                                 <td>{{ j.eps or 'N/A' }}</td>
                                 <td>{{ j.rol_equipo }}</td>
@@ -139,7 +167,7 @@
                                     <div class="modal fade" id="editModal{{ j.id }}" tabindex="-1" aria-hidden="true">
                                         <div class="modal-dialog modal-lg">
                                             <div class="modal-content">
-                                                <form method="POST" action="{{ url_for('delegado.editar_jugador', jugador_id=j.id) }}">
+                                                <form method="POST" action="{{ url_for('delegado.editar_jugador', jugador_id=j.id) }}" enctype="multipart/form-data">
                                                     <div class="modal-header bg-dark text-white">
                                                         <h5 class="modal-title fw-bold">Editar a {{ j.nombre }}</h5>
                                                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -149,6 +177,15 @@
                                                             <div class="col-md-6 mb-3">
                                                                 <label class="form-label fw-semibold small">Nombre Completo</label>
                                                                 <input type="text" name="nombre" class="form-control form-control-sm" value="{{ j.nombre }}" required>
+                                                            </div>
+                                                            <div class="col-md-2 mb-3">
+                                                                <label class="form-label fw-semibold small">Tipo Documento</label>
+                                                                <select name="tipo_documento" class="form-select form-select-sm" required>
+                                                                    <option value="CC" {% if j and j.tipo_documento == 'CC' %}selected{% endif %}>CC</option>
+                                                                    <option value="TI" {% if j and j.tipo_documento == 'TI' %}selected{% endif %}>TI</option>
+                                                                    <option value="CE" {% if j and j.tipo_documento == 'CE' %}selected{% endif %}>CE</option>
+                                                                    <option value="Pasaporte" {% if j and j.tipo_documento == 'Pasaporte' %}selected{% endif %}>Pasaporte</option>
+                                                                </select>
                                                             </div>
                                                             <div class="col-md-6 mb-3">
                                                                 <label class="form-label fw-semibold small">N° Documento</label>
@@ -181,6 +218,11 @@
                                                                 <label class="form-label fw-semibold small">Fin Contrato</label>
                                                                 <input type="date" name="fecha_fin" class="form-control form-control-sm" value="{{ j.fecha_fin or '' }}">
                                                             </div>
+
+                                                            <div class="col-md-3 mb-3">
+                                                                <label class="form-label fw-semibold small">Foto del Jugador</label>
+                                                                <input type="file" name="foto" class="form-control form-control-sm" accept="image/*">
+                                                            </div>
                                                         </div>
                                                     </div>
                                                     <div class="modal-footer">
@@ -202,6 +244,17 @@
                     </table>
                 </div>
             </div>
+
+            <!-- En paneldelegado.html -->
+            <form method="POST" action="{{ url_for('delegado.subir_escudo') }}" enctype="multipart/form-data" class="mb-4">
+                <label class="form-label fw-bold">Actualizar Escudo del Equipo</label>
+                <div class="input-group">
+                    <input type="file" name="escudo" class="form-control" accept="image/*" required>
+                    <button type="submit" class="btn btn-dark">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-upload" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/></svg> Subir
+                    </button>
+                </div>
+            </form>
         </div>
 
         <!-- PESTAÑA 2: MERCADO DE FICHAJES -->
@@ -527,6 +580,27 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         });
     }, 4000);
+
+
+    // Función para mostrar/ocultar el campo de posición
+    window.togglePosicion = function(selectElement) {
+        // Busca el formulario padre para afectar solo al formulario actual (inscripción o modal)
+        let form = selectElement.closest('form');
+        let posicionContainer = form.querySelector('.posicion-container');
+        let posicionInput = form.querySelector('.input-posicion');
+        
+        if (selectElement.value === 'Deportista') {
+            posicionContainer.style.display = 'block';
+        } else {
+            posicionContainer.style.display = 'none';
+            posicionInput.value = ''; // Limpia el valor si no es deportista
+        }
+    };
+
+    // Ejecutar al cargar la página para evaluar el estado inicial de todos los selectores
+    document.querySelectorAll('.selector-rol').forEach(select => {
+        togglePosicion(select);
+    });
 });
 </script>
 {% endblock %}

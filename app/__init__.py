@@ -1,6 +1,6 @@
 from flask import Flask
 from config import Config
-from app.extensions import db, oauth, migrate
+from app.extensions import db, oauth, migrate, mail
 
 def create_app(config_class=Config):
     app = Flask(__name__)
@@ -13,6 +13,8 @@ def create_app(config_class=Config):
     migrate.init_app(app, db)
     oauth.init_app(app)
 
+    mail.init_app(app)
+
     # 2. Registro de Blueprints (Rutas aisladas)
     # Se importan dentro de la función para garantizar que la app ya exista
     
@@ -20,7 +22,7 @@ def create_app(config_class=Config):
     from app.blueprints.admin_bp import admin_bp
     from app.blueprints.delegado_bp import delegado_bp
     # from app.blueprints.futbol_bp import futbol_bp
-    # from app.blueprints.yeimi_bp import yeimi_bp
+    from app.blueprints.yeimi_bp import yeimi_bp
     from app.blueprints.fifa_bp import fifa_bp
     from app.blueprints.main_bp import main_bp
 
@@ -28,7 +30,7 @@ def create_app(config_class=Config):
     app.register_blueprint(delegado_bp, url_prefix='/delegado')
     app.register_blueprint(admin_bp, url_prefix='/admin')
     # app.register_blueprint(futbol_bp, url_prefix='/futbol')
-    # app.register_blueprint(yeimi_bp, url_prefix='/yeimi')
+    app.register_blueprint(yeimi_bp, url_prefix='/yeimi')
     app.register_blueprint(fifa_bp, url_prefix='/fifa')
     app.register_blueprint(main_bp)
 

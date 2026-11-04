@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Recuperar Contraseña{% endblock %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5">
+        <div class="card shadow-sm border-0 p-4">
+            <h3 class="fw-bold mb-3">Recuperar Contraseña</h3>
+            <p class="text-muted small">Ingresa el correo con el que te registraste. Te enviaremos un enlace seguro para restablecer el acceso.</p>
+            <form method="POST">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Correo Electrónico</label>
+                    <input type="email" name="email" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 fw-bold">Enviar Enlace</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

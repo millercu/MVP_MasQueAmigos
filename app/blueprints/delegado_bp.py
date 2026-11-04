@@ -67,6 +67,7 @@ def agregar_jugador():
 
     # Capturar todos los datos del formulario respetando tu modelo
     nombre = request.form.get('nombre')
+    tipo_documento = request.form.get('tipo_documento')
     documento = request.form.get('documento')
     eps = request.form.get('eps')
     rol_equipo = request.form.get('rol_equipo')
@@ -86,9 +87,17 @@ def agregar_jugador():
         flash('Ya existe un jugador registrado con ese número de documento.', 'danger')
         return redirect(url_for('delegado.panel'))
 
+    # Justo antes de db.session.add(nuevo_jugador) o db.session.commit()
+    foto_archivo = request.files.get('foto')
+    if foto_archivo and foto_archivo.filename != '':
+        filename = secure_filename(f"jugador_{documento}_{foto_archivo.filename}")
+        foto_archivo.save(os.path.join('app/static/uploads', filename))
+        nuevo_jugador.foto = filename # O jugador.foto = filename en la edición
+
     # Crear el nuevo registro del jugador
     nuevo_jugador = Jugador(
         nombre=nombre,
+        tipo_documento=tipo_documento,
         documento=documento,
         eps=eps,
         rol_equipo=rol_equipo,
@@ -198,6 +207,7 @@ def editar_jugador(jugador_id):
 
     # Actualizar datos
     jugador.nombre = request.form.get('nombre')
+    jugador.tipo_documento = request.form.get('tipo_documento')
     jugador.documento = request.form.get('documento')
     jugador.eps = request.form.get('eps')
     jugador.rol_equipo = request.form.get('rol_equipo')
@@ -213,6 +223,13 @@ def editar_jugador(jugador_id):
         jugador.clausula_rescision = float(clausula_limpia)
     except ValueError:
         jugador.clausula_rescision = 0.0
+
+    # Justo antes de db.session.add(nuevo_jugador) o db.session.commit()
+    foto_archivo = request.files.get('foto')
+    if foto_archivo and foto_archivo.filename != '':
+        filename = secure_filename(f"jugador_{jugador.documento}_{foto_archivo.filename}")
+        foto_archivo.save(os.path.join('app/static/uploads', filename))
+        jugador.foto = filename # O jugador.foto = filename en la edición
 
     db.session.commit()
     flash('Datos del jugador actualizados correctamente.', 'success')
@@ -335,4 +352,19 @@ def eliminar_documento(doc_id):
     db.session.commit()
     
     flash('Tu reporte fue eliminado y retirado de la vista del administrador.', 'success')
+    return redirect(url_for('delegado.panel'))
+
+
+# En delegado_bp.py
+@delegado_bp.route('/subir-escudo', methods=['POST'])
+def subir_escudo():
+    if session.get('user_rol') not in ['delegado', 'admin']: return redirect(url_for('main.index'))
+    equipo = Equipo.query.filter_by(usuario_id=session.get('user_id')).first()
+    archivo = request.files.get('escudo')
+    
+    if equipo and archivo and archivo.filename != '':
+        filename = secure_filename(f"escudo_{equipo.id}_{archivo.filename}")
+        archivo.save(os.path.join('app/static/uploads', filename))
+        equipo.escudo = filename
+        db.session.commit()
     return redirect(url_for('delegado.panel'))

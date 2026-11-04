@@ -36,6 +36,30 @@
 
 
 
+<!-- 1. Carrusel de Imágenes (Añadir arriba de los equipos) -->
+<div id="carruselPrincipal" class="carousel slide mb-5 shadow-sm" data-bs-ride="carousel">
+    <div class="carousel-inner">
+        {% for img in carrusel_imagenes %}
+        <div class="carousel-item {% if loop.first %}active{% endif %}">
+            <img src="{{ url_for('static', filename='uploads/' ~ img.imagen) }}" class="d-block w-100 slider-img" alt="Torneo">
+        </div>
+        {% else %}
+        <div class="carousel-item active">
+            <img src="{{ url_for('static', filename='img/default_slider.jpg') }}" class="d-block w-100 slider-img" alt="Bienvenida">
+        </div>
+        {% endfor %}
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#carruselPrincipal" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#carruselPrincipal" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+    </button>
+</div>
+
+
+
+
 <div class="container py-5">
     <h2 class="mb-4 fw-bold">Equipos Participantes</h2>
     <p class="text-muted">Conoce los equipos oficiales que están compitiendo en el torneo.</p>
@@ -49,12 +73,22 @@
                     {% for eq in cat.equipos %}
                         <div class="col-md-4 mb-3">
                             <div class="card shadow-sm h-100 border-0 bg-light">
-                                <div class="card-body">
-                                    <h5 class="card-title fw-bold text-dark">{{ eq.nombre }}</h5>
-                                    <p class="card-text small text-muted">
-                                        Delegado: {{ eq.delegado_asignado.nombres if eq.delegado_asignado else 'Sin asignar' }}
-                                    </p>
-                                    <a href="{{ url_for('main.ver_equipo', equipo_id=eq.id) }}" class="btn btn-sm btn-outline-primary">Ver Información del Equipo</a>
+                                <div class="card-body text-center">
+                                        <!-- Mostrar escudo del equipo -->
+                                        {% if eq.escudo %}
+                                            <img src="{{ url_for('static', filename='uploads/' ~ eq.escudo) }}" class="escudo-md mb-3 shadow-sm" alt="Escudo {{ eq.nombre }}">
+                                        {% else %}
+                                            <!-- Escudo por defecto si no han subido nada -->
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" fill="#ccc" class="bi bi-shield-fill mb-3" viewBox="0 0 16 16">
+                                                <path d="M5.072.56C6.157.265 7.31 0 8 0s1.843.265 2.928.56c1.11.3 2.229.655 2.887.87a1.54 1.54 0 0 1 1.044 1.262c.596 4.477-.787 7.795-2.465 9.99a11.8 11.8 0 0 1-2.517 2.453 7 7 0 0 1-1.048.625c-.28.132-.581.24-.829.24s-.548-.108-.829-.24a7 7 0 0 1-1.048-.625 11.8 11.8 0 0 1-2.517-2.453C1.928 10.487.545 7.169 1.141 2.692A1.54 1.54 0 0 1 2.185 1.43 63 63 0 0 1 5.072.56z"/>
+                                            </svg>
+                                        {% endif %}
+                                        
+                                        <h5 class="card-title fw-bold text-dark">{{ eq.nombre }}</h5>
+                                        <p class="card-text small text-muted">
+                                            Delegado: {{ eq.delegado_asignado.nombres if eq.delegado_asignado else 'Sin asignar' }}
+                                        </p>
+                                        <a href="{{ url_for('main.ver_equipo', equipo_id=eq.id) }}" class="btn btn-sm btn-outline-primary">Ver Información Del Equipo</a>
                                 </div>
                             </div>
                         </div>
@@ -149,7 +183,15 @@
 
 
 
-    <!-- SECCIÓN PÚBLICA DE PODIOS eSPORTS / CONSOLA -->
+<!-- SECCIÓN PÚBLICA DE PODIOS eSPORTS / CONSOLA -->
+{% set mostrar_podios = false %}
+{% for cat in categorias %}
+    {% if cat.podio and (cat.podio.campeon or cat.podio.subcampeon or cat.podio.tercer_puesto) %}
+        {% set mostrar_podios = true %}
+    {% endif %}
+{% endfor %}
+
+{% if mostrar_podios %}
 <div class="container py-4 mt-3 border-top">
     <h3 class="fw-bold text-dark mb-3">Cuadro de Honor - eSports</h3>
     <div class="row">
@@ -182,6 +224,7 @@
         {% endfor %}
     </div>
 </div>
+{% endif %}
 
 
 

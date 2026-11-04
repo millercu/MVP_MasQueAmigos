@@ -4,7 +4,7 @@ from werkzeug.utils import secure_filename
 from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from app.extensions import db
-from app.models import Usuario, Equipo, Configuracion, Traspaso, Jugador, Categoria, Partido, DocumentoTorneo, Torneo, PodioEsports
+from app.models import Usuario, Equipo, Configuracion, Traspaso, Jugador, Categoria, Partido, DocumentoTorneo, Torneo, Carrusel, Patrocinador
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -48,7 +48,9 @@ def panel():
     equipos = Equipo.query.filter(Equipo.categoria_id.in_(cat_ids)).all() if cat_ids else []
     partidos = Partido.query.filter(Partido.categoria_id.in_(cat_ids)).all() if cat_ids else []
     documentos = DocumentoTorneo.query.filter_by(torneo_id=torneo_activo.id).order_by(DocumentoTorneo.fecha_subida.desc()).all()
-    
+    carrusel_imagenes = Carrusel.query.order_by(Carrusel.orden.asc()).all()
+    patrocinadores = Patrocinador.query.all()
+
     return render_template('admin/paneladmin.html', 
                            usuarios=usuarios, 
                            equipos=equipos, 
@@ -59,7 +61,8 @@ def panel():
                            partidos=partidos,
                            documentos=documentos,
                            torneos=torneos,
-                           torneo_activo=torneo_activo)
+                           torneo_activo=torneo_activo,arrusel_imagenes=carrusel_imagenes,  # <-- AGREGAR ESTO
+                           patrocinadores=patrocinadores)
 
 
 
@@ -633,4 +636,48 @@ def vincular_antiguos():
         
     db.session.commit()
     flash('¡Los equipos y categorías anteriores se han vinculado al torneo activo con éxito!', 'success')
+    return redirect(url_for('admin.panel'))
+
+
+@admin_bp.route('/carrusel/subir', methods=['POST'])
+def subir_carrusel():
+    if session.get('user_rol') != 'admin': return redirect(url_for('main.index'))
+    archivo = request.files.get('imagen')
+    if archivo and archivo.filename:
+        filename = secure_filename(archivo.filename)
+        archivo.save(os.path.join('app/static/uploads', filename))
+        db.session.add(Carrusel(imagen=filename))
+        db.session.commit()
+    return redirect(url_for('admin.panel'))
+
+@admin_bp.route('/carrusel/eliminar/<int:id>', methods=['POST'])
+def eliminar_carrusel(id):
+    if session.get('user_rol') != 'admin': return redirect(url_for('main.index'))
+    img = Carrusel.query.get_or_404(id)
+    db.session.delete(img)
+    db.session.commit()
+    return redirect(url_for('admin.panel'))
+
+@admin_bp.route('/patrocinador/subir', methods=['POST'])
+def subir_patrocinador():
+    if session.get('user_rol') != 'admin': return redirect(url_for('main.index'))
+    archivo = request.files.get('logo')
+    if archivo and archivo.filename:
+        filename = secure_filename(archivo.filename)
+        archivo.save(os.path.join('app/static/uploads', filename))
+        nuevo = Patrocinador(
+            nombre=request.form.get('nombre'),
+            enlace=request.form.get('enlace'),
+            logo=filename
+        )
+        db.session.add(nuevo)
+        db.session.commit()
+    return redirect(url_for('admin.panel'))
+
+@admin_bp.route('/patrocinador/eliminar/<int:id>', methods=['POST'])
+def eliminar_patrocinador(id):
+    if session.get('user_rol') != 'admin': return redirect(url_for('main.index'))
+    pat = Patrocinador.query.get_or_404(id)
+    db.session.delete(pat)
+    db.session.commit()
     return redirect(url_for('admin.panel'))
