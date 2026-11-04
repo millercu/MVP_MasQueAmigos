@@ -39,7 +39,7 @@ class Usuario(db.Model):
 class Categoria(db.Model):
     __tablename__ = 'categoria'
     id = db.Column(db.Integer, primary_key=True)
-    nombre = db.Column(db.String(100), nullable=False, unique=True)
+    nombre = db.Column(db.String(100), nullable=False, unique=False)
     torneo_id = db.Column(db.Integer, db.ForeignKey('torneo.id'), nullable=True) # Vinculación
 
 
@@ -49,7 +49,7 @@ class Categoria(db.Model):
 class Equipo(db.Model):
     __tablename__ = 'equipo'
     id = db.Column(db.Integer, primary_key=True)
-    nombre = db.Column(db.String(120), nullable=False, unique=True)
+    nombre = db.Column(db.String(120), nullable=False, unique=False)
     escudo = db.Column(db.String(255), nullable=True, default='default_escudo.png')    
     # Llave foránea para la categoría
     categoria_id = db.Column(db.Integer, db.ForeignKey('categoria.id'), nullable=True)

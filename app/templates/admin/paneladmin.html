@@ -436,10 +436,12 @@
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
+                            <!-- En la tabla de Categorías -->
                             <tbody>
                                 {% for cat in categorias %}
                                 <tr>
-                                    <td>{{ cat.id }}</td>
+                                    <!-- Reemplaza {{ cat.id }} por {{ loop.index }} -->
+                                    <td class="fw-bold">{{ loop.index }}</td> 
                                     <td>
                                         <form action="{{ url_for('admin.editar_categoria', id=cat.id) }}" method="POST" class="d-flex gap-2">
                                             <input type="text" name="nombre" value="{{ cat.nombre }}" class="form-control form-control-sm" required>
@@ -704,6 +706,59 @@
                     </div>
                 </div>
                 {% endif %}
+
+
+                <div class="row text-center mt-4">
+    {% set final = partidos_categoria | selectattr('fase', 'equalto', 'Final') | list %}
+    {% set tercero = partidos_categoria | selectattr('fase', 'equalto', 'Tercer Puesto') | list %}
+    
+    {% if final and final[0].estado == 'Jugado' %}
+        <div class="col-12 mt-3"><h5 class="fw-bold text-success">🏆 Podio Oficial: {{ cat.nombre }}</h5></div>
+        <div class="col-md-4 order-2">
+            <div class="p-3 bg-light border border-warning rounded shadow-sm">
+                <h2 class="mb-0">🥇</h2>
+                <strong class="d-block mt-2">Campeón</strong>
+                <span class="text-muted">
+                    {% if final[0].goles_local > final[0].goles_visitante or (final[0].penales_local and final[0].penales_local > final[0].penales_visitante) %}
+                        {{ final[0].equipo_local.nombre }}
+                    {% else %}
+                        {{ final[0].equipo_visitante.nombre }}
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+        <div class="col-md-4 order-1 mt-4">
+            <div class="p-3 bg-light border border-secondary rounded shadow-sm">
+                <h2 class="mb-0">🥈</h2>
+                <strong class="d-block mt-2">Subcampeón</strong>
+                <span class="text-muted">
+                    {% if final[0].goles_local < final[0].goles_visitante or (final[0].penales_local and final[0].penales_local < final[0].penales_visitante) %}
+                        {{ final[0].equipo_local.nombre }}
+                    {% else %}
+                        {{ final[0].equipo_visitante.nombre }}
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+        {% if tercero and tercero[0].estado == 'Jugado' %}
+        <div class="col-md-4 order-3 mt-4">
+            <div class="p-3 bg-light border border-dark opacity-75 rounded shadow-sm">
+                <h2 class="mb-0">🥉</h2>
+                <strong class="d-block mt-2">Tercer Puesto</strong>
+                <span class="text-muted">
+                    {% if tercero[0].goles_local > tercero[0].goles_visitante or (tercero[0].penales_local and tercero[0].penales_local > tercero[0].penales_visitante) %}
+                        {{ tercero[0].equipo_local.nombre }}
+                    {% else %}
+                        {{ tercero[0].equipo_visitante.nombre }}
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+        {% endif %}
+    {% endif %}
+</div>
+
+
             {% endfor %}
         </div>
 

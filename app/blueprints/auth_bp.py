@@ -56,6 +56,30 @@ def registro():
             flash('El número de documento ya se encuentra registrado.', 'danger')
             return redirect(url_for('auth.registro'))
 
+        # 1. Validación de longitud y numéricos
+        if not (8 <= len(documento) <= 10) or not documento.isdigit():
+            flash('El documento debe tener entre 8 y 10 dígitos numéricos.', 'danger')
+            return redirect(url_for('auth.registro'))
+
+        if len(telefono) < 10 or not telefono.isdigit():
+            flash('El celular debe tener al menos 10 dígitos numéricos.', 'danger')
+            return redirect(url_for('auth.registro'))
+
+        # 2. Validación de edad según documento
+        try:
+            fecha_nac = datetime.strptime(fecha_nacimiento, '%Y-%m-%d')
+            edad = (datetime.now() - fecha_nac).days // 365
+            
+            if tipo_documento == 'CC' and edad < 18:
+                flash('Para registrarse con Cédula (CC) debe ser mayor de 18 años.', 'danger')
+                return redirect(url_for('auth.registro'))
+            elif tipo_documento == 'TI' and edad < 16:
+                flash('Para registrarse con Tarjeta de Identidad (TI) debe tener al menos 16 años.', 'danger')
+                return redirect(url_for('auth.registro'))
+        except ValueError:
+            flash('Fecha de nacimiento inválida.', 'danger')
+            return redirect(url_for('auth.registro'))
+
         # Crear usuario con rol por defecto 'usuario' y contraseña encriptada
         nuevo_usuario = Usuario(
             nombres=nombres,

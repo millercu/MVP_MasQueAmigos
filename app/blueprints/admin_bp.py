@@ -528,10 +528,36 @@ def eliminar_torneo(torneo_id):
         return redirect(url_for('main.index'))
         
     torneo = Torneo.query.get_or_404(torneo_id)
+    
+    # Obtener solo las categorías de ESTE torneo
+    categorias = Categoria.query.filter_by(torneo_id=torneo.id).all()
+    cat_ids = [c.id for c in categorias]
+
+    if cat_ids:
+        partidos = Partido.query.filter(Partido.categoria_id.in_(cat_ids)).all()
+        partido_ids = [p.id for p in partidos]
+
+        if partido_ids:
+            # 1. Eliminar estadísticas de los partidos de este torneo
+            EstadisticaPartido.query.filter(EstadisticaPartido.partido_id.in_(partido_ids)).delete(synchronize_session=False)
+            
+            # 2. Eliminar los partidos de este torneo
+            Partido.query.filter(Partido.categoria_id.in_(cat_ids)).delete(synchronize_session=False)
+
+        # 3. Eliminar únicamente los equipos creados para este torneo
+        Equipo.query.filter(Equipo.categoria_id.in_(cat_ids)).delete(synchronize_session=False)
+
+        # 4. Eliminar las categorías de este torneo
+        Categoria.query.filter_by(torneo_id=torneo.id).delete(synchronize_session=False)
+
+    # 5. Eliminar documentos del torneo
+    DocumentoTorneo.query.filter_by(torneo_id=torneo.id).delete(synchronize_session=False)
+
+    # 6. Eliminar el torneo
     db.session.delete(torneo)
     db.session.commit()
     
-    flash('El torneo y toda su información interna han sido eliminados por completo.', 'success')
+    flash('El torneo seleccionado fue eliminado sin alterar los torneos anteriores.', 'success')
     return redirect(url_for('admin.panel'))
 
 
@@ -621,21 +647,46 @@ def vincular_antiguos():
     
     torneo_activo = Torneo.query.filter_by(estado='Activo').first()
     if not torneo_activo:
-        flash('Primero debes crear y activar un torneo.', 'danger')
+        flash('Primero debes activar un torneo.', 'danger')
         return redirect(url_for('admin.panel'))
         
-    # Buscar categorías que no tengan torneo o que pertenezcan a ediciones pasadas que quieras trasladar
-    categorias_huerfanas = Categoria.query.filter_by(torneo_id=None).all()
+    # Buscar el torneo anterior
+    torneo_anterior = Torneo.query.filter(Torneo.id != torneo_activo.id).order_by(Torneo.id.desc()).first()
     
-    if not categorias_huerfanas:
-        flash('No hay categorías pendientes por vincular.', 'info')
+    if not torneo_anterior:
+        flash('No hay un torneo anterior del cual copiar equipos.', 'info')
         return redirect(url_for('admin.panel'))
         
-    for cat in categorias_huerfanas:
-        cat.torneo_id = torneo_activo.id
+    categorias_anteriores = Categoria.query.filter_by(torneo_id=torneo_anterior.id).all()
+    
+    if not categorias_anteriores:
+        flash('El torneo anterior no tiene categorías para vincular.', 'info')
+        return redirect(url_for('admin.panel'))
         
+    # Duplicar categorías y equipos EXCLUSIVOS para el torneo activo
+    for cat_ant in categorias_anteriores:
+        # Verificar si la categoría ya existe en el torneo activo
+        cat_nueva = Categoria.query.filter_by(nombre=cat_ant.nombre, torneo_id=torneo_activo.id).first()
+        if not cat_nueva:
+            cat_nueva = Categoria(nombre=cat_ant.nombre, torneo_id=torneo_activo.id)
+            db.session.add(cat_nueva)
+            db.session.flush()
+
+        # Copiar equipos a la nueva categoría del torneo activo
+        equipos_ant = Equipo.query.filter_by(categoria_id=cat_ant.id).all()
+        for eq_ant in equipos_ant:
+            eq_existente = Equipo.query.filter_by(nombre=eq_ant.nombre, categoria_id=cat_nueva.id).first()
+            if not eq_existente:
+                nuevo_eq = Equipo(
+                    nombre=eq_ant.nombre,
+                    categoria_id=cat_nueva.id,
+                    usuario_id=eq_ant.usuario_id,
+                    escudo=eq_ant.escudo
+                )
+                db.session.add(nuevo_eq)
+
     db.session.commit()
-    flash('¡Los equipos y categorías anteriores se han vinculado al torneo activo con éxito!', 'success')
+    flash('¡Equipos del torneo anterior vinculados al nuevo torneo sin afectar el historial!', 'success')
     return redirect(url_for('admin.panel'))
 
 

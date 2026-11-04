@@ -82,6 +82,10 @@ def agregar_jugador():
     except ValueError:
         clausula = 0.0
 
+    if not (8 <= len(documento) <= 10) or not documento.isdigit():
+        flash('El número de documento debe ser numérico y contener entre 8 y 10 dígitos.', 'danger')
+        return redirect(url_for('delegado.panel'))
+
     # Validación: Verificar que el documento no esté registrado ya
     if Jugador.query.filter_by(documento=documento).first():
         flash('Ya existe un jugador registrado con ese número de documento.', 'danger')
@@ -93,6 +97,11 @@ def agregar_jugador():
         filename = secure_filename(f"jugador_{documento}_{foto_archivo.filename}")
         foto_archivo.save(os.path.join('app/static/uploads', filename))
         nuevo_jugador.foto = filename # O jugador.foto = filename en la edición
+
+
+    if Jugador.query.filter_by(equipo_id=equipo.id).count() >= 25:
+        flash('El equipo ya alcanzó el límite máximo de 25 personas inscritas.', 'danger')
+        return redirect(url_for('delegado.panel'))
 
     # Crear el nuevo registro del jugador
     nuevo_jugador = Jugador(
@@ -205,6 +214,12 @@ def editar_jugador(jugador_id):
         flash('No tienes permiso para editar este jugador.', 'danger')
         return redirect(url_for('delegado.panel'))
 
+    documento_nuevo = request.form.get('documento', '').strip()
+
+    if not (8 <= len(documento_nuevo) <= 10) or not documento_nuevo.isdigit():
+        flash('El número de documento debe ser numérico y contener entre 8 y 10 dígitos.', 'danger')
+        return redirect(url_for('delegado.panel'))
+
     # Actualizar datos
     jugador.nombre = request.form.get('nombre')
     jugador.tipo_documento = request.form.get('tipo_documento')
@@ -225,11 +240,16 @@ def editar_jugador(jugador_id):
         jugador.clausula_rescision = 0.0
 
     # Justo antes de db.session.add(nuevo_jugador) o db.session.commit()
-    foto_archivo = request.files.get('foto')
-    if foto_archivo and foto_archivo.filename != '':
-        filename = secure_filename(f"jugador_{jugador.documento}_{foto_archivo.filename}")
-        foto_archivo.save(os.path.join('app/static/uploads', filename))
-        jugador.foto = filename # O jugador.foto = filename en la edición
+    # Reemplaza la sección de guardado de foto por esto:
+    if request.form.get('eliminar_foto') == 'on':
+        # Opcional: Aquí puedes agregar os.remove() para borrar el archivo físico
+        jugador.foto = None
+    else:
+        foto_archivo = request.files.get('foto')
+        if foto_archivo and foto_archivo.filename != '':
+            filename = secure_filename(f"jugador_{jugador.documento}_{foto_archivo.filename}")
+            foto_archivo.save(os.path.join('app/static/uploads', filename))
+            jugador.foto = filename
 
     db.session.commit()
     flash('Datos del jugador actualizados correctamente.', 'success')
