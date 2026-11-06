@@ -2,72 +2,98 @@
 {% block title %}Registro de Usuario - Torneo Bagadó{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card-bagado p-4 shadow-sm">
-            <h3 class="mb-3 text-center text-success fw-bold">Registro General</h3>
-            <p class="text-muted text-small text-center mb-4">Participantes, espectadores y miembros de la comunidad.</p>
+<section class="auth-page auth-page-wide container py-4 py-md-5">
+    <div class="auth-card">
+        <div class="auth-header">
+            <span class="auth-kicker">COPA MÁS QUE AMIGOS</span>
+            <h2>Registro General</h2>
+        </div>
 
-            <!-- Mensajes Flash de Alerta -->
-            {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-        {% for category, message in messages %}
-            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <!-- Mensajes Flash de Alerta -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="auth-alerts">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" class="auth-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+            <div class="auth-section-title">
+                <span>01</span>
+                <h3>Datos personales</h3>
             </div>
-        {% endfor %}
-    {% endif %}
-{% endwith %}
 
-            <form method="POST">
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Nombres y Apellidos</label>
-                    <input type="text" name="nombres" class="form-control" required placeholder="Tu nombre completo">
+            <div class="auth-fields-grid">
+                <div class="auth-field auth-field-full">
+                    <label class="form-label" for="registro-nombres">Nombres y Apellidos</label>
+                    <input id="registro-nombres" type="text" name="nombres" class="form-control" required placeholder="Tu nombre completo">
                 </div>
-                <div class="row">
-                     <div class="col-md-6 mb-3">
-                        <label class="form-label fw-semibold">Tipo de Doc.</label>
-                        <select name="tipo_documento" class="form-select" required>
-                            <option value="CC">Cédula de Ciudadanía (CC)</option>
-                            <option value="TI">Tarjeta de Identidad (TI)</option>
-                            <option value="CE">Cédula de Extranjería (CE)</option>
-                            <option value="RC">Registro Civil (RC)</option>
-                            <option value="PAS">Pasaporte</option>
-                        </select>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label fw-semibold">N° de Documento</label>
-                        <input type="text" name="documento" class="form-control" required pattern="\d{8,10}" title="Debe contener entre 8 y 10 números" placeholder="Número de identificación">                  
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label fw-semibold">Celular</label>
-                        <input type="text" name="telefono" class="form-control" required pattern="\d{10,}" title="Debe contener al menos 10 números" placeholder="Número de contacto">
-                    </div>
+
+                <div class="auth-field">
+                    <label class="form-label" for="registro-tipo-documento">Tipo de Doc.</label>
+                    <select id="registro-tipo-documento" name="tipo_documento" class="form-select" required>
+                        <option value="CC">Cédula de Ciudadanía (CC)</option>
+                        <option value="TI">Tarjeta de Identidad (TI)</option>
+                        <option value="CE">Cédula de Extranjería (CE)</option>
+                        <option value="RC">Registro Civil (RC)</option>
+                        <option value="PAS">Pasaporte</option>
+                    </select>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Fecha de Nacimiento</label>
-                    <input type="date" name="fecha_nacimiento" class="form-control" required>
+
+                <div class="auth-field">
+                    <label class="form-label" for="registro-documento">N° de Documento</label>
+                    <input id="registro-documento" type="text" name="documento" class="form-control" required pattern="\d{8,10}" title="Debe contener entre 8 y 10 números" placeholder="Número de identificación">
                 </div>
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Correo Electrónico</label>
-                    <input type="email" name="email" class="form-control" required placeholder="Ingresa un correo activo y válido para verificación">
+
+                <div class="auth-field">
+                    <label class="form-label" for="registro-telefono">Celular</label>
+                    <input id="registro-telefono" type="text" name="telefono" class="form-control" required pattern="\d{10,}" title="Debe contener al menos 10 números" placeholder="Número de contacto">
                 </div>
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Contraseña</label>
-                    <input type="password" name="password" class="form-control" required placeholder="Mín. 8 caracteres, mayúscula, número y símbolo">
+
+                <div class="auth-field">
+                    <label class="form-label" for="registro-fecha">Fecha de Nacimiento</label>
+                    <input id="registro-fecha" type="date" name="fecha_nacimiento" class="form-control" required>
+                </div>
+            </div>
+
+            <div class="auth-section-title auth-section-spaced">
+                <span>02</span>
+                <h3>Datos de acceso</h3>
+            </div>
+
+            <div class="auth-fields-grid">
+                <div class="auth-field auth-field-full">
+                    <label class="form-label" for="registro-email">Correo Electrónico</label>
+                    <input id="registro-email" type="email" name="email" class="form-control" required placeholder="Ingresa un correo activo y válido para verificación">
+                </div>
+
+                <div class="auth-field auth-field-full">
+                    <label class="form-label" for="registro-password">Contraseña</label>
+                    <input id="registro-password" type="password" name="password" class="form-control" required placeholder="Mín. 8 caracteres, mayúscula, número y símbolo">
                     <div class="form-text">Debe contener mín. 8 caracteres, una mayúscula, una minúscula, un número y un símbolo (@$!%*?&#).</div>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label fw-semibold">Confirmar Contraseña</label>
-                    <input type="password" name="confirm_password" class="form-control" required placeholder="Repite tu contraseña">
+
+                <div class="auth-field auth-field-full">
+                    <label class="form-label" for="registro-confirm-password">Confirmar Contraseña</label>
+                    <input id="registro-confirm-password" type="password" name="confirm_password" class="form-control" required placeholder="Repite tu contraseña">
                 </div>
-                <button type="submit" class="btn btn-primario w-100 py-2 fw-bold">Registrarse</button>
-            </form>
-            <div class="text-center mt-3">
-                <a href="{{ url_for('auth.login') }}" class="text-decoration-none text-success">¿Ya tienes una cuenta? Inicia sesión aquí</a>
             </div>
+
+            <button type="submit" class="btn btn-primario auth-submit w-100">Registrarse</button>
+        </form>
+
+        <div class="auth-footer-link">
+            <span>¿Ya tienes una cuenta?</span>
+            <a href="{{ url_for('auth.login') }}">Inicia sesión aquí</a>
         </div>
     </div>
-</div>
+</section>
 {% endblock %}

@@ -1,19 +1,29 @@
 {% extends "base.html" %}
 {% block title %}Restablecer Contraseña{% endblock %}
+
 {% block content %}
-<div class="row justify-content-center mt-5">
-    <div class="col-md-5">
-        <div class="card shadow-sm border-0 p-4">
-            <h3 class="fw-bold mb-3">Crear Nueva Contraseña</h3>
-            <form method="POST">
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Nueva Contraseña</label>
-                    <input type="password" name="password" class="form-control" required>
-                    <div class="form-text text-muted small">Mínimo 8 caracteres, 1 mayúscula, 1 número y 1 carácter especial.</div>
-                </div>
-                <button type="submit" class="btn btn-success w-100 fw-bold">Guardar Contraseña</button>
-            </form>
+<section class="auth-page auth-page-compact container py-4 py-md-5">
+    <div class="auth-card auth-card-compact">
+        <div class="auth-header">
+            <div class="auth-icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M8 1a3 3 0 0 0-3 3v2H4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-1V4a3 3 0 0 0-3-3ZM6 4a2 2 0 1 1 4 0v2H6V4Zm2 5a1 1 0 0 1 .5 1.866V12a.5.5 0 0 1-1 0v-1.134A1 1 0 0 1 8 9Z"/>
+                </svg>
+            </div>
+            <span class="auth-kicker">SEGURIDAD DE LA CUENTA</span>
+            <h2>Crear Nueva Contraseña</h2>
+            <p>Establece una contraseña nueva para recuperar el acceso a tu cuenta.</p>
         </div>
+
+        <form method="POST" class="auth-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div class="auth-field">
+                <label class="form-label" for="reset-password">Nueva Contraseña</label>
+                <input id="reset-password" type="password" name="password" class="form-control" required>
+                <div class="form-text">Mínimo 8 caracteres, 1 mayúscula, 1 número y 1 carácter especial.</div>
+            </div>
+            <button type="submit" class="btn btn-primario auth-submit w-100">Guardar Contraseña</button>
+        </form>
     </div>
-</div>
+</section>
 {% endblock %}

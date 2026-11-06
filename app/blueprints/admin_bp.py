@@ -6,6 +6,12 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from app.extensions import db
 from app.models import Usuario, Equipo, Configuracion, Traspaso, Jugador, Categoria, Partido, DocumentoTorneo, Torneo, Carrusel, Patrocinador
 
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS 
+
+
 admin_bp = Blueprint('admin', __name__)
 
 @admin_bp.route('/panel')
@@ -694,12 +700,17 @@ def vincular_antiguos():
 def subir_carrusel():
     if session.get('user_rol') != 'admin': return redirect(url_for('main.index'))
     archivo = request.files.get('imagen')
-    if archivo and archivo.filename:
+    
+    if archivo and archivo.filename and allowed_file(archivo.filename):
         filename = secure_filename(archivo.filename)
         archivo.save(os.path.join('app/static/uploads', filename))
         db.session.add(Carrusel(imagen=filename))
         db.session.commit()
+    else:
+        flash('Tipo de archivo no permitido. Solo imágenes.', 'danger')
     return redirect(url_for('admin.panel'))
+
+  
 
 @admin_bp.route('/carrusel/eliminar/<int:id>', methods=['POST'])
 def eliminar_carrusel(id):

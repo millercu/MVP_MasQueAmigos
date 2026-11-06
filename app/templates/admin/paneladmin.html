@@ -1,12 +1,32 @@
 {% extends "base.html" %}
-{% block title %}Panel de Administración - Torneo Bagadó{% endblock %}
+{% block title %}Panel de Administración - Torneo Bagadó
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".admin-panel .table-responsive table").forEach(function (table) {
+        const labels = Array.from(table.querySelectorAll("thead th")).map(function (heading) {
+            return heading.textContent.replace(/\s+/g, " ").trim();
+        });
+
+        table.querySelectorAll("tbody tr").forEach(function (row) {
+            Array.from(row.cells).forEach(function (cell, index) {
+                if (cell.tagName === "TD" && !cell.hasAttribute("colspan")) {
+                    cell.setAttribute("data-label", labels[index] || "Detalle");
+                }
+            });
+        });
+    });
+});
+</script>
+
+{% endblock %}
 
 {% block content %}
-<div class="container py-4">
+<div class="container py-4 admin-panel">
     
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 admin-panel-heading">
         <div>
-            <h2 class="fw-bold text-dark">
+            <h2 class="fw-bold text-bagado-verde-primario">
                 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" class="bi bi-shield-lock me-2" viewBox="0 0 16 16">
                   <path d="M5.338 1.59a61 61 0 0 0-2.837.856.48.48 0 0 0-.328.39c-.554 4.157.726 7.19 2.253 9.188a10.7 10.7 0 0 0 2.287 2.233c.346.244.652.42.893.533.12.057.218.095.293.118a1 1 0 0 0 .101.025 1 1 0 0 0 .1-.025c.076-.023.174-.061.294-.118.24-.113.547-.29.893-.533a10.7 10.7 0 0 0 2.287-2.233c1.527-1.997 2.807-5.031 2.253-9.188a.48.48 0 0 0-.328-.39c-.651-.213-1.75-.56-2.837-.855C9.552 1.29 8.531 1.067 8 1.067c-.53 0-1.552.223-2.662.524zM5.072.56C6.157.265 7.31 0 8 0s1.843.265 2.928.56c1.11.3 2.229.655 2.887.87a1.54 1.54 0 0 1 1.044 1.262c.596 4.477-.787 7.795-2.465 9.99a11.8 11.8 0 0 1-2.517 2.453 7 7 0 0 1-1.048.625c-.28.132-.581.24-.829.24s-.548-.108-.829-.24a7 7 0 0 1-1.048-.625 11.8 11.8 0 0 1-2.517-2.453C1.928 10.487.545 7.169 1.141 2.692A1.54 1.54 0 0 1 2.185 1.43 63 63 0 0 1 5.072.56"/>
                   <path d="M9.5 6.5a1.5 1.5 0 0 1-1 1.415l.385 1.99a.5.5 0 0 1-.491.595h-.788a.5.5 0 0 1-.49-.595l.384-1.99a1.5 1.5 0 1 1 2-1.415"/>
@@ -18,7 +38,7 @@
     </div>
 
     <!-- Sistema de pestañas (Tabs) para modularizar las secciones -->
-    <ul class="nav nav-tabs mb-4" id="adminTab" role="tablist">
+    <ul class="nav nav-tabs mb-4 admin-tabs" id="adminTab" role="tablist">
     <li class="nav-item" role="presentation">
         <button class="nav-link active fw-semibold" id="delegados-tab" data-bs-toggle="tab" data-bs-target="#delegados-content" type="button" role="tab">Delegados</button>
     </li>
@@ -49,7 +69,7 @@
     </li>
 
     <li class="nav-item" role="presentation">
-        <button class="nav-link fw-semibold text-primary" id="fixture-tab" data-bs-toggle="tab" data-bs-target="#fixture-content" type="button" role="tab">Fixture y Sorteo</button>
+        <button class="nav-link fw-semibold text-bagado-verde-primario" id="fixture-tab" data-bs-toggle="tab" data-bs-target="#fixture-content" type="button" role="tab">Fixture y Sorteo</button>
     </li>
 
     <li class="nav-item" role="presentation">
@@ -73,8 +93,8 @@
         
         <!-- Pestaña 1: Equipos y Delegados -->
         <div class="tab-pane fade show active" id="delegados-content" role="tabpanel">
-            <div class="card border-0 shadow-sm p-4">
-                 <h4 class="mb-3 text-dark fw-bold">Asignación de Delegados</h4>
+            <div class="card-bagado p-4">
+                 <h4 class="mb-3 text-bagado-verde-primario fw-bold">Asignación de Delegados</h4>
                 <p class="text-muted small">Asigna los usuarios registrados como delegados oficiales de cada equipo participante.</p>
 
                 <div class="table-responsive">
@@ -101,7 +121,7 @@
                                 </td>
                                 <td>
                                     <!-- Botón que abre el modal -->
-                                    <button type="button" class="btn btn-sm btn-outline-dark" data-bs-toggle="modal" data-bs-target="#modalDelegado{{ eq.id }}">
+                                    <button type="button" class="btn btn-sm btn-outline-bagado" data-bs-toggle="modal" data-bs-target="#modalDelegado{{ eq.id }}">
                                         Asignar / Cambiar
                                     </button>
 
@@ -114,6 +134,7 @@
                                                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                                 </div>
                                                 <form method="POST" action="{{ url_for('admin.asignar_delegado', equipo_id=eq.id) }}">
+                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                                     <div class="modal-body">
                                                         <label class="form-label fw-bold">Seleccionar Usuario</label>
                                                         <select name="usuario_id" class="form-select" required>
@@ -127,7 +148,7 @@
                                                     </div>
                                                     <div class="modal-footer">
                                                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                                        <button type="submit" class="btn btn-primary">Guardar</button>
+                                                        <button type="submit" class="btn btn-primario">Guardar</button>
                                                     </div>
                                                 </form>
                                             </div>
@@ -144,8 +165,8 @@
 
         <!-- Pestaña 2: Usuarios / Comunidad -->
         <div class="tab-pane fade" id="usuarios-content" role="tabpanel">
-            <div class="card border-0 shadow-sm p-4">
-                <h4 class="mb-3 text-dark fw-bold">Listado General de Usuarios</h4>
+            <div class="card-bagado p-4">
+                <h4 class="mb-3 text-bagado-verde-primario fw-bold">Listado General de Usuarios</h4>
                 <p class="text-muted small">Visualiza todos los perfiles registrados en la plataforma y sus roles de acceso.</p>
 
                 <div class="table-responsive">
@@ -185,8 +206,8 @@
 
         <!-- Pestaña 3: Configuración del Torneo -->
         <div class="tab-pane fade" id="config-content" role="tabpanel">
-            <div class="card border-0 shadow-sm p-4 text-center">
-                <h4 class="mb-3 text-dark fw-bold">Gestión del Mercado de Fichajes</h4>
+            <div class="card-bagado p-4 text-center">
+                <h4 class="mb-3 text-bagado-verde-primario fw-bold">Gestión del Mercado de Fichajes</h4>
                 <p class="text-muted">Controla si los delegados de los equipos pueden enviar ofertas de traspaso, negociar préstamos o intercambiar jugadores.</p>
                 
                 <div class="my-4">
@@ -198,6 +219,7 @@
                 </div>
 
                 <form method="POST" action="{{ url_for('admin.toggle_mercado') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     {% if config.mercado_abierto %}
                         <button type="submit" class="btn btn-outline-danger fw-bold px-5 py-2">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-x-circle me-1" viewBox="0 0 16 16">
@@ -223,16 +245,17 @@
 
 
         <div class="tab-pane fade" id="torneos-content" role="tabpanel">
-    <div class="card border-0 shadow-sm p-4 mb-4">
-        <h4 class="mb-3 text-dark fw-bold">Gestión de Campeonatos (Multitorneo)</h4>
+    <div class="card-bagado p-4 mb-4">
+        <h4 class="mb-3 text-bagado-verde-primario fw-bold">Gestión de Campeonatos (Multitorneo)</h4>
         <p class="text-muted small">Crea nuevas ediciones del torneo (Ej: Copa Noviembre, Torneo Clausura) y define cuál está en curso. Solo el torneo activo recibirá nuevos equipos, partidos y estadísticas.</p>
 
-        <form method="POST" action="{{ url_for('admin.crear_torneo') }}" class="row g-2 mb-5 bg-light p-3 border rounded">
+        <form method="POST" action="{{ url_for('admin.crear_torneo') }}" class="row g-2 mb-5 bg-light p-3 border rounded admin-form-panel">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <div class="col-md-9">
                 <input type="text" name="nombre" class="form-control" placeholder="Nombre de la nueva edición (Ej: Copa Más Que Amigos - Edición Diciembre)" required>
             </div>
             <div class="col-md-3">
-                <button type="submit" class="btn btn-dark w-100 fw-bold">Crear Torneo</button>
+                <button type="submit" class="btn btn-primario w-100 fw-bold">Crear Torneo</button>
             </div>
         </form>
 
@@ -260,6 +283,7 @@
                             <div class="d-flex gap-2 justify-content-center">
                                 {% if t.estado != 'Activo' %}
                                 <form method="POST" action="{{ url_for('admin.activar_torneo', torneo_id=t.id) }}">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                     <button type="submit" class="btn btn-sm btn-outline-success fw-bold">Activar</button>
                                 </form>
                                 {% else %}
@@ -268,6 +292,7 @@
 
                                 <!-- Botón para eliminar el torneo por completo -->
                                 <form method="POST" action="{{ url_for('admin.eliminar_torneo', torneo_id=t.id) }}" onsubmit="return confirm('¿Estás seguro de eliminar este torneo? Se borrarán en cascada todas sus categorías, equipos y partidos asociados.');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                     <button type="submit" class="btn btn-sm btn-danger fw-bold">Eliminar</button>
                                 </form>
                             </div>
@@ -280,12 +305,13 @@
             </table>
 
 
-            <div class="card border-0 shadow-sm p-4 mt-4 bg-light">
-                <h5 class="fw-bold text-dark">Reutilizar Equipos y Categorías  del torneo anterior</h5>
+            <div class="card-bagado p-4 mt-4 admin-nested-card">
+                <h5 class="fw-bold text-bagado-verde-primario">Reutilizar Equipos y Categorías  del torneo anterior</h5>
                 <p class="small text-muted mb-3">Si acabas de crear un torneo nuevo y quieres que aparezcan los mismos equipos de la edición pasada para no tener que crearlos desde cero, haz clic en el siguiente botón:</p>
                 
                 <form method="POST" action="{{ url_for('admin.vincular_antiguos') }}" onsubmit="return confirm('¿Deseas vincular los equipos y categorías existentes al torneo activo?');">
-                    <button type="submit" class="btn btn-dark fw-bold px-4 py-2">
+                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <button type="submit" class="btn btn-primario fw-bold px-4 py-2">
                         Vincular Equipos al nuevo torneo
                     </button>
                 </form>
@@ -297,15 +323,14 @@
 
         <!-- Pestaña 4: Traspasos Pendientes de Validación -->
             <div class="tab-pane fade" id="traspasos-content" role="tabpanel">
-                <div class="card border-0 shadow-sm p-4">
-                    <h4 class="mb-3 text-dark fw-bold">Validación Final de Fichajes</h4>
+                <div class="card-bagado p-4">
+                    <h4 class="mb-3 text-bagado-verde-primario fw-bold">Validación Final de Fichajes</h4>
                     <p class="text-muted small">Los delegados ya han negociado y aceptado estos traspasos. Como administrador, da el aval final para mover los jugadores de equipo.</p>
 
                     <div class="table-responsive">
                         <table class="table table-hover align-middle">
                             <thead class="table-dark">
                                 <tr>
-                                    hr>
                                     <th>Jugador</th>
                                     <th>Equipo Origen</th>
                                     <th>Equipo Destino</th>
@@ -329,10 +354,12 @@
                                         <div class="d-flex gap-2">
                                             <!-- Botón Aprobar -->
                                             <form method="POST" action="{{ url_for('admin.resolver_traspaso', traspaso_id=t.id, accion='aprobar') }}">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                                 <button type="submit" class="btn btn-sm btn-success fw-bold">Aprobar</button>
                                             </form>
                                             <!-- Botón Rechazar -->
                                             <form method="POST" action="{{ url_for('admin.resolver_traspaso', traspaso_id=t.id, accion='rechazar') }}">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                                 <button type="submit" class="btn btn-sm btn-outline-danger fw-bold">Rechazar</button>
                                             </form>
                                         </div>
@@ -352,8 +379,8 @@
 
             <!-- Pestaña 5: Control Global de Jugadores -->
             <div class="tab-pane fade" id="jugadores-admin-content" role="tabpanel">
-                <div class="card border-0 shadow-sm p-4">
-                    <h4 class="mb-3 text-dark fw-bold">Listado General de Inscritos</h4>
+                <div class="card-bagado p-4">
+                    <h4 class="mb-3 text-bagado-verde-primario fw-bold">Listado General de Inscritos</h4>
                     <p class="text-muted small">Visualiza a todos los jugadores del torneo y reasignales el equipo correspondiente de forma inmediata si aparecen como libres por error.</p>
 
                     <div class="table-responsive">
@@ -373,7 +400,7 @@
                                 {% for j in jugadores %}
                                 <tr>
                                     <td class="fw-bold">{{ j.nombre }}</td>
-                                    <td><span class="badge bg-light text-dark border">{{ j.tipo_documento or 'CC' }}</td>
+                                    <td><span class="badge bg-light text-dark border">{{ j.tipo_documento or 'CC' }}</span></td>
                                     <td>{{ j.documento }}</td>
                                     <td>{{ j.rol_equipo }}</td>
                                     <td>{{ j.posicion or '-' }}</td>
@@ -386,6 +413,7 @@
                                     </td>
                                     <td>
                                         <form method="POST" action="{{ url_for('admin.reasignar_jugador', jugador_id=j.id) }}" class="row g-2">
+                                           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                             <div class="col-auto">
                                                 <select name="equipo_id" class="form-select form-select-sm" required>
                                                     <option value="">-- Agente Libre --</option>
@@ -397,7 +425,7 @@
                                                 </select>
                                             </div>
                                             <div class="col-auto">
-                                                <button type="submit" class="btn btn-sm btn-dark">Actualizar</button>
+                                                <button type="submit" class="btn btn-sm btn-primario">Actualizar</button>
                                             </div>
                                         </form>
                                     </td>
@@ -416,14 +444,15 @@
 
                         <!-- SECCIÓN CATEGORÍAS -->
             <div class="tab-pane fade" id="categorias-content" role="tabpanel">
-                <div class="card border-0 shadow-sm p-4 mb-4">
+                <div class="card-bagado p-4 mb-4">
                     <h4 class="mb-3 fw-bold">Gestionar Categorías</h4>
                     <form action="{{ url_for('admin.crear_categoria') }}" method="POST" class="row g-2 mb-4">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         <div class="col-md-8">
                             <input type="text" name="nombre" class="form-control" placeholder="Nombre de la nueva categoría (Ej: A, Sub-20, Senior)" required>
                         </div>
                         <div class="col-md-4">
-                            <button type="submit" class="btn btn-dark w-100">Crear Categoría</button>
+                            <button type="submit" class="btn btn-primario w-100">Crear Categoría</button>
                         </div>
                     </form>
 
@@ -444,12 +473,14 @@
                                     <td class="fw-bold">{{ loop.index }}</td> 
                                     <td>
                                         <form action="{{ url_for('admin.editar_categoria', id=cat.id) }}" method="POST" class="d-flex gap-2">
+                                           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                             <input type="text" name="nombre" value="{{ cat.nombre }}" class="form-control form-control-sm" required>
-                                            <button type="submit" class="btn btn-sm btn-primary">Guardar</button>
+                                            <button type="submit" class="btn btn-sm btn-primario">Guardar</button>
                                         </form>
                                     </td>
                                     <td>
                                         <form action="{{ url_for('admin.eliminar_categoria', id=cat.id) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Eliminar categoría? Los equipos asociados quedarán sin categoría.');">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                             <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
                                         </form>
                                     </td>
@@ -465,9 +496,10 @@
 
             <!-- SECCIÓN EQUIPOS -->
             <div class="tab-pane fade" id="equipos-content" role="tabpanel">
-                <div class="card border-0 shadow-sm p-4 mb-4">
+                <div class="card-bagado p-4 mb-4">
                     <h4 class="mb-3 fw-bold">Gestionar Equipos</h4>
                     <form action="{{ url_for('admin.crear_equipo') }}" method="POST" class="row g-2 mb-4">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         <div class="col-md-5">
                             <input type="text" name="nombre" class="form-control" placeholder="Nombre del equipo" required>
                         </div>
@@ -480,7 +512,7 @@
                             </select>
                         </div>
                         <div class="col-md-3">
-                            <button type="submit" class="btn btn-dark w-100">Crear Equipo</button>
+                            <button type="submit" class="btn btn-primario w-100">Crear Equipo</button>
                         </div>
                     </form>
 
@@ -498,6 +530,7 @@
                                 <tr>
                                     <td>
                                         <form action="{{ url_for('admin.editar_equipo', id=eq.id) }}" method="POST" class="row g-2">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                             <div class="col-md-6">
                                                 <input type="text" name="nombre" value="{{ eq.nombre }}" class="form-control form-control-sm" required>
                                             </div>
@@ -510,7 +543,7 @@
                                                 </select>
                                             </div>
                                             <div class="col-md-2">
-                                                <button type="submit" class="btn btn-sm btn-primary w-100">OK</button>
+                                                <button type="submit" class="btn btn-sm btn-primario w-100">OK</button>
                                             </div>
                                         </form>
                                     </td>
@@ -519,6 +552,7 @@
                                     </td>
                                     <td>
                                         <form action="{{ url_for('admin.eliminar_equipo', id=eq.id) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Estás seguro de eliminar este equipo? Se borrarán sus jugadores asociados.');">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                             <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
                                         </form>
                                     </td>
@@ -535,23 +569,25 @@
 
           <!-- Pestaña: Fixture y Sorteo -->
 <div class="tab-pane fade" id="fixture-content" role="tabpanel">
-    <div class="card border-0 shadow-sm p-4 mb-4">
-        <h4 class="mb-3 text-dark fw-bold">Generación de Fixture y Sorteo</h4>
+    <div class="card-bagado p-4 mb-4">
+        <h4 class="mb-3 text-bagado-verde-primario fw-bold">Generación de Fixture y Sorteo</h4>
         <p class="text-muted small">Realiza el sorteo automático de los cruces por categoría. El sistema organizará las llaves dependiendo de la cantidad de equipos.</p>
 
         {% for cat in categorias %}
-        <div class="alert alert-light border shadow-sm mb-4">
-            <h5 class="fw-bold text-primary border-bottom pb-2">{{ cat.nombre }} ({{ cat.equipos|length }} Equipos inscritos)</h5>
+        <div class="alert alert-light border shadow-sm mb-4 admin-category-card">
+            <h5 class="fw-bold text-bagado-verde-primario border-bottom pb-2">{{ cat.nombre }} ({{ cat.equipos|length }} Equipos inscritos)</h5>
             
             {% if cat.equipos|length == 4 %}
                 <p class="small text-muted mb-2"><strong>Formato detectado:</strong> Semifinal Directa. El sistema sorteará automáticamente las dos llaves, conectándolas con la Final y Tercer Puesto.</p>
                 <form method="POST" action="{{ url_for('admin.generar_fixture', categoria_id=cat.id) }}">
+                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <button type="submit" class="btn btn-success fw-bold">Realizar Sorteo Semifinales</button>
                 </form>
 
             {% elif cat.equipos|length == 5 %}
                 <p class="small text-muted mb-2"><strong>Formato detectado:</strong> Repechaje + Semifinal. Selecciona los dos equipos (4to y 5to) que jugarán el repechaje inicial. El sistema sorteará a los 3 restantes.</p>
                 <form method="POST" action="{{ url_for('admin.generar_fixture', categoria_id=cat.id) }}" class="row g-2 align-items-end">
+                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <div class="col-md-4">
                         <label class="form-label small fw-bold">Equipo en Repechaje 1</label>
                         <select name="equipo_4_id" class="form-select" required>
@@ -571,7 +607,7 @@
                         </select>
                     </div>
                     <div class="col-md-4">
-                        <button type="submit" class="btn btn-warning fw-bold w-100">Sortear y Generar Llaves</button>
+                        <button type="submit" class="btn btn-secundario fw-bold w-100">Sortear y Generar Llaves</button>
                     </div>
                 </form>
             {% else %}
@@ -581,6 +617,7 @@
             <!-- BOTÓN PARA ELIMINAR EL SORTEO DE ESTA CATEGORÍA ESPECÍFICA -->
             <div class="mt-3 pt-2 border-top">
                 <form method="POST" action="{{ url_for('admin.eliminar_fixture', categoria_id=cat.id) }}" onsubmit="return confirm('¿Seguro que deseas eliminar todo el sorteo y partidos de esta categoría?');">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <button type="submit" class="btn btn-sm btn-outline-danger fw-bold"> Eliminar Sorteo Actual de {{ cat.nombre }}</button>
                 </form>
             </div>
@@ -591,7 +628,7 @@
     </div>
 
 
-            <hr class="my-5 border-2 border-primary">
+            <hr class="my-5 border-2 border-success">
             <h4 class="mb-4 text-dark fw-bold">Calendario y Programación Oficial</h4>
 
             {% for cat in categorias %}
@@ -605,8 +642,8 @@
 
                 <!-- SI HAY PARTIDOS, MOSTRAMOS LA TABLA -->
                 {% if partidos_categoria %}
-                <div class="card mb-5 border-primary shadow-sm">
-                    <div class="card-header bg-primary text-white fw-bold fs-5">
+                <div class="card-bagado mb-5 admin-fixture-card">
+                    <div class="card-bagado-header fw-bold fs-5 px-3 py-2">
                         Fixture: {{ cat.nombre }}
                     </div>
                     <div class="card-body p-0">
@@ -650,13 +687,13 @@
                                             <!-- Columna de Acciones Limpia -->
                                             <td>
                                                 <!-- Botón de programar fecha y hora -->
-                                                <button class="btn btn-sm btn-outline-primary fw-bold" data-bs-toggle="modal" data-bs-target="#programarModal{{ p.id }}">
+                                                <button class="btn btn-sm btn-outline-bagado fw-bold" data-bs-toggle="modal" data-bs-target="#programarModal{{ p.id }}">
                                                     Programar
                                                 </button>
 
                                                 <!-- Botón inteligente de Acta Arbitral / Editar Acta -->
                                                 {% if p.equipo_local and p.equipo_visitante and p.fecha and p.hora %}
-                                                    <a href="{{ url_for('admin.acta_partido', partido_id=p.id) }}" class="btn btn-sm {% if p.estado == 'Jugado' %}btn-warning{% else %}btn-success{% endif %} fw-bold ms-1" title="Registrar o Editar Estadísticas">
+                                                    <a href="{{ url_for('admin.acta_partido', partido_id=p.id) }}" class="btn btn-sm {% if p.estado == 'Jugado' %}btn-secundario{% else %}btn-success{% endif %} fw-bold ms-1" title="Registrar o Editar Estadísticas">
                                                         {% if p.estado == 'Jugado' %}Editar Acta{% else %}Acta Arbitral{% endif %}
                                                     </a>
                                                 {% endif %}
@@ -668,6 +705,7 @@
                                             <div class="modal-dialog">
                                                 <div class="modal-content text-start">
                                                     <form action="{{ url_for('admin.programar_partido', partido_id=p.id) }}" method="POST">
+                                                       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                                         <div class="modal-header bg-dark text-white">
                                                             <h5 class="modal-title fw-bold">Asignar Fecha y Hora</h5>
                                                             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
@@ -693,7 +731,7 @@
                                                         </div>
                                                         <div class="modal-footer">
                                                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                                            <button type="submit" class="btn btn-primary fw-bold">Guardar Cambios</button>
+                                                            <button type="submit" class="btn btn-primario fw-bold">Guardar Cambios</button>
                                                         </div>
                                                     </form>
                                                 </div>
@@ -713,10 +751,9 @@
     {% set tercero = partidos_categoria | selectattr('fase', 'equalto', 'Tercer Puesto') | list %}
     
     {% if final and final[0].estado == 'Jugado' %}
-        <div class="col-12 mt-3"><h5 class="fw-bold text-success">🏆 Podio Oficial: {{ cat.nombre }}</h5></div>
+        <div class="col-12 mt-3"><h5 class="fw-bold text-success">Podio Oficial: {{ cat.nombre }}</h5></div>
         <div class="col-md-4 order-2">
             <div class="p-3 bg-light border border-warning rounded shadow-sm">
-                <h2 class="mb-0">🥇</h2>
                 <strong class="d-block mt-2">Campeón</strong>
                 <span class="text-muted">
                     {% if final[0].goles_local > final[0].goles_visitante or (final[0].penales_local and final[0].penales_local > final[0].penales_visitante) %}
@@ -729,7 +766,6 @@
         </div>
         <div class="col-md-4 order-1 mt-4">
             <div class="p-3 bg-light border border-secondary rounded shadow-sm">
-                <h2 class="mb-0">🥈</h2>
                 <strong class="d-block mt-2">Subcampeón</strong>
                 <span class="text-muted">
                     {% if final[0].goles_local < final[0].goles_visitante or (final[0].penales_local and final[0].penales_local < final[0].penales_visitante) %}
@@ -765,12 +801,13 @@
 
         <!-- Pestaña de Documentos (Admin) -->
         <div class="tab-pane fade" id="documentos-content" role="tabpanel">
-            <div class="card border-0 shadow-sm p-4">
-                <h4 class="mb-3 text-dark fw-bold">Gestión de Documentos PDF</h4>
+            <div class="card-bagado p-4">
+                <h4 class="mb-3 text-bagado-verde-primario fw-bold">Gestión de Documentos PDF</h4>
                 <p class="text-muted small">Sube reglamentos para los delegados o revisa los reportes que ellos han enviado.</p>
 
                 <!-- Formulario para subir PDF -->
-                <form method="POST" action="{{ url_for('admin.subir_documento') }}" enctype="multipart/form-data" class="mb-4 row g-3 bg-light p-3 border rounded">
+                <form method="POST" action="{{ url_for('admin.subir_documento') }}" enctype="multipart/form-data" class="mb-4 row g-3 bg-light p-3 border rounded admin-form-panel">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <div class="col-md-5">
                         <label class="form-label fw-bold small">Título del Documento</label>
                         <input type="text" name="titulo" class="form-control" required placeholder="Ej: Reglamento Interno 2026">
@@ -780,7 +817,7 @@
                         <input type="file" name="archivo" class="form-control" accept=".pdf" required>
                     </div>
                     <div class="col-md-2 d-flex align-items-end">
-                        <button type="submit" class="btn btn-dark w-100">Subir PDF</button>
+                        <button type="submit" class="btn btn-primario w-100">Subir PDF</button>
                     </div>
                 </form>
 
@@ -808,9 +845,10 @@
                             </td>
                             <td>
                                 <div class="d-flex gap-2">
-                                    <a href="{{ url_for('static', filename='uploads/' ~ doc.archivo) }}" target="_blank" class="btn btn-sm btn-outline-dark fw-bold">Ver / Descargar</a>
+                                    <a href="{{ url_for('static', filename='uploads/' ~ doc.archivo) }}" target="_blank" class="btn btn-sm btn-outline-bagado fw-bold">Ver / Descargar</a>
                                     
                                     <form method="POST" action="{{ url_for('admin.eliminar_documento', doc_id=doc.id) }}" onsubmit="return confirm('¿Seguro que deseas eliminar este documento de forma permanente?');">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                         <button type="submit" class="btn btn-sm btn-danger" title="Eliminar Documento">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
                                             <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z"/>
@@ -835,14 +873,15 @@
 
         <!-- Pestaña Carrusel -->
 <div class="tab-pane fade" id="carrusel-content" role="tabpanel">
-    <div class="card border-0 shadow-sm p-4 mb-4">
+    <div class="card-bagado p-4 mb-4">
         <h4 class="mb-3 fw-bold">Gestión del Carrusel de Imágenes</h4>
         <form action="{{ url_for('admin.subir_carrusel') }}" method="POST" enctype="multipart/form-data" class="row g-2 mb-4">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <div class="col-md-8">
                 <input type="file" name="imagen" class="form-control" accept="image/*" required>
             </div>
             <div class="col-md-4">
-                <button type="submit" class="btn btn-dark w-100">Subir Imagen</button>
+                <button type="submit" class="btn btn-primario w-100">Subir Imagen</button>
             </div>
         </form>
         <div class="table-responsive">
@@ -861,6 +900,7 @@
                         <td class="text-muted small">{{ img.imagen }}</td>
                         <td>
                             <form action="{{ url_for('admin.eliminar_carrusel', id=img.id) }}" method="POST">
+                               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                 <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
                             </form>
                         </td>
@@ -876,9 +916,10 @@
 
 <!-- Pestaña Patrocinadores -->
 <div class="tab-pane fade" id="patrocinadores-content" role="tabpanel">
-    <div class="card border-0 shadow-sm p-4 mb-4">
+    <div class="card-bagado p-4 mb-4">
         <h4 class="mb-3 fw-bold">Gestión de Patrocinadores</h4>
         <form action="{{ url_for('admin.subir_patrocinador') }}" method="POST" enctype="multipart/form-data" class="row g-2 mb-4">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <div class="col-md-4">
                 <input type="text" name="nombre" class="form-control" placeholder="Nombre del patrocinador" required>
             </div>
@@ -889,7 +930,7 @@
                 <input type="file" name="logo" class="form-control" accept="image/*" required>
             </div>
             <div class="col-md-2">
-                <button type="submit" class="btn btn-dark w-100">Agregar</button>
+                <button type="submit" class="btn btn-primario w-100">Agregar</button>
             </div>
         </form>
         <div class="table-responsive">
@@ -907,7 +948,7 @@
                     <tr>
                         <td><img src="{{ url_for('static', filename='uploads/' ~ pat.logo) }}" alt="{{ pat.nombre }}" class="sponsor-logo"></td>
                         <td class="fw-bold">{{ pat.nombre }}</td>
-                        <td><a href="{{ pat.enlace }}" target="_blank" class="text-primary small">{{ pat.enlace }}</a></td>
+                        <td><a href="{{ pat.enlace }}" target="_blank" class="text-bagado-verde-primario small">{{ pat.enlace }}</a></td>
                         <td>
                             <form action="{{ url_for('admin.eliminar_patrocinador', id=pat.id) }}" method="POST">
                                 <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>

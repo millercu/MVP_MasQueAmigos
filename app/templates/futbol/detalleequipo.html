@@ -2,76 +2,89 @@
 {% block title %}Información de Equipo - {{ equipo.nombre }}{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <div class="d-flex align-items-center gap-3">
-        {% if equipo.escudo %}
-            <img src="{{ url_for('static', filename='uploads/' ~ equipo.escudo) }}" class="escudo-lg shadow-sm" alt="Escudo">
-        {% endif %}
-        <div>
-            <h2 class="fw-bold text-dark mb-1">{{ equipo.nombre }}</h2>
-            <p class="text-muted mb-0">Categoría: <span class="badge bg-primary">{{ equipo.categoria.nombre if equipo.categoria else 'Sin Categoría' }}</span> | Delegado: {{ equipo.delegado_asignado.nombres if equipo.delegado_asignado else 'No asignado' }}</p>
-        </div>
-        <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary fw-bold">Volver al Inicio</a>
-
-    </div>
-
-            
-
-    <div class="card border-0 shadow-sm p-4 mb-4 bg-light">
-        <h4 class="fw-bold text-dark mb-3">Información Sobresaliente</h4>
-        <div class="row">
-            <div class="col-md-4">
-                <p class="mb-1 text-muted small">Total Integrantes Inscritos</p>
-                <h5 class="fw-bold">{{ jugadores|length }}</h5>
-            </div>
-            <div class="col-md-4">
-                <p class="mb-1 text-muted small">Sede / Delegación</p>
-                <h5 class="fw-bold">Bagadó, Chocó</h5>
-            </div>
-            <div class="col-md-4">
-                <p class="mb-1 text-muted small">Estado del Club</p>
-                <h5 class="fw-bold text-success">Activo en el Torneo</h5>
+<div class="container py-4 bagado-view team-detail-page">
+    <header class="bagado-page-header team-detail-header mb-4">
+        <div class="team-detail-identity">
+            {% if equipo.escudo %}
+                <img src="{{ url_for('static', filename='uploads/' ~ equipo.escudo) }}" class="team-detail-crest shadow-sm" alt="Escudo de {{ equipo.nombre }}">
+            {% endif %}
+            <div class="team-detail-heading">
+                <span class="bagado-eyebrow">Ficha del club</span>
+                <h1 class="bagado-page-title mb-1">{{ equipo.nombre }}</h1>
+                <p class="bagado-page-subtitle mb-0">
+                    Categoría:
+                    <span class="badge bg-bagado-verde-primario">{{ equipo.categoria.nombre if equipo.categoria else 'Sin Categoría' }}</span>
+                    <span class="team-detail-separator">|</span>
+                    Delegado: <strong>{{ equipo.delegado_asignado.nombres if equipo.delegado_asignado else 'No asignado' }}</strong>
+                </p>
             </div>
         </div>
-    </div>
+        <a href="{{ url_for('main.index') }}" class="btn btn-outline-dark fw-bold bagado-back-button">Volver al inicio</a>
+    </header>
 
-    <div class="card border-0 shadow-sm p-4">
-        <h4 class="fw-bold text-dark mb-3">Plantilla Oficial</h4>
-        <div class="table-responsive">
-            <table class="table table-hover align-middle">
+    <section class="team-summary-card mb-4" aria-labelledby="team-summary-title">
+        <div class="bagado-section-heading mb-3">
+            <span class="bagado-eyebrow">Datos del equipo</span>
+            <h2 id="team-summary-title" class="bagado-section-title mb-0">Información sobresaliente</h2>
+        </div>
+        <div class="team-summary-grid">
+            <article class="team-summary-item">
+                <span class="team-summary-label">Total integrantes inscritos</span>
+                <strong class="team-summary-value">{{ jugadores|length }}</strong>
+            </article>
+            <article class="team-summary-item">
+                <span class="team-summary-label">Sede / delegación</span>
+                <strong class="team-summary-value">Bagadó, Chocó</strong>
+            </article>
+            <article class="team-summary-item">
+                <span class="team-summary-label">Estado del club</span>
+                <strong class="team-summary-value team-summary-status">Activo en el torneo</strong>
+            </article>
+        </div>
+    </section>
+
+    <section class="card-bagado team-roster-card" aria-labelledby="team-roster-title">
+        <div class="team-roster-heading">
+            <div>
+                <span class="bagado-eyebrow">Jugadores y cuerpo técnico</span>
+                <h2 id="team-roster-title" class="bagado-section-title mb-1">Plantilla oficial</h2>
+                <p class="text-muted mb-0 small">Integrantes registrados para este equipo.</p>
+            </div>
+            <span class="team-roster-count">{{ jugadores|length }} integrantes</span>
+        </div>
+        <div class="table-responsive bagado-table-wrap">
+            <table class="table table-hover align-middle bagado-mobile-table team-roster-table">
                 <thead class="table-dark">
                     <tr>
-                        <th>Foto</th>
-                        <th>Nombre Completo</th>
-                        <th>Rol</th>
-                        <th>Posición</th>
-                        
+                        <th scope="col">Foto</th>
+                        <th scope="col">Nombre completo</th>
+                        <th scope="col">Rol</th>
+                        <th scope="col">Posición</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for j in jugadores %}
                     <tr>
-                        <td>
+                        <td data-label="Foto">
                             {% if j.foto %}
-                                <img src="{{ url_for('static', filename='uploads/' ~ j.foto) }}" class="escudo-sm shadow-sm" alt="Foto">
+                                <img src="{{ url_for('static', filename='uploads/' ~ j.foto) }}" class="escudo-sm shadow-sm team-player-photo" alt="Foto de {{ j.nombre }}">
                             {% else %}
-                                <!-- Avatar por defecto -->
-                                <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="#ccc" class="bi bi-person-circle" viewBox="0 0 16 16">
-                                <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
-                                <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="#9aa39d" class="bi bi-person-circle" viewBox="0 0 16 16" aria-label="Sin fotografía">
+                                    <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
+                                    <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/>
                                 </svg>
                             {% endif %}
                         </td>
-                        <td class="fw-bold">{{ j.nombre }}</td>
-                        <td><span class="badge bg-secondary">{{ j.rol_equipo }}</span></td>
-                        <td>{{ j.posicion or '-' }}</td>
+                        <td data-label="Nombre completo" class="fw-bold">{{ j.nombre }}</td>
+                        <td data-label="Rol"><span class="badge bg-secondary">{{ j.rol_equipo }}</span></td>
+                        <td data-label="Posición">{{ j.posicion or '-' }}</td>
                     </tr>
                     {% else %}
-                    <tr><td colspan="4" class="text-center text-muted py-3">Este equipo aún no cuenta con jugadores inscritos.</td></tr>
+                    <tr><td colspan="4" class="table-empty-state text-center text-muted py-4">Este equipo aún no cuenta con jugadores inscritos.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
-    </div>
+    </section>
 </div>
 {% endblock %}

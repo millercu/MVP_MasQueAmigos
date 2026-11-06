@@ -3,15 +3,13 @@
 
 {% block content %}
 
-
-
-<div class="d-flex justify-content-between align-items-center mb-4 bg-light p-3 border rounded shadow-sm">
+<div class="d-flex justify-content-between align-items-center mb-4 card-bagado p-3">
     <div>
-        <h4 class="fw-bold text-dark mb-0">
+        <h4 class="fw-bold text-bagado-verde-primario mb-0">
             {% if torneo_seleccionado %}
                 {{ torneo_seleccionado.nombre }} 
                 {% if torneo_seleccionado.estado == 'Activo' %}
-                    <span class="badge bg-success fs-6 ms-2">En Curso</span>
+                    <span class="badge bg-bagado-verde-primario fs-6 ms-2">En Curso</span>
                 {% else %}
                     <span class="badge bg-secondary fs-6 ms-2">Edición Finalizada</span>
                 {% endif %}
@@ -22,8 +20,9 @@
     </div>
     
     <form method="GET" action="{{ url_for('main.index') }}" class="d-flex align-items-center gap-2">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         <label class="fw-bold text-muted small text-nowrap">Ver edición:</label>
-        <select name="torneo_id" class="form-select border-primary fw-bold" onchange="this.form.submit()">
+        <select name="torneo_id" class="form-select fw-bold border-0 bg-light" onchange="this.form.submit()">
             <option value="">Seleccionar torneo...</option>
             {% for t in torneos %}
                 <option value="{{ t.id }}" {% if torneo_seleccionado and t.id == torneo_seleccionado.id %}selected{% endif %}>
@@ -34,11 +33,9 @@
     </form>
 </div>
 
-
-
-<!-- 1. Carrusel de Imágenes (Añadir arriba de los equipos) -->
-<div id="carruselPrincipal" class="carousel slide mb-5 shadow-sm" data-bs-ride="carousel">
-    <div class="carousel-inner">
+<!-- 1. Carrusel de Imágenes -->
+<div id="carruselPrincipal" class="carousel slide mb-5 card-bagado p-1" data-bs-ride="carousel">
+    <div class="carousel-inner" style="border-radius: 8px; overflow: hidden;">
         {% for img in carrusel_imagenes %}
         <div class="carousel-item {% if loop.first %}active{% endif %}">
             <img src="{{ url_for('static', filename='uploads/' ~ img.imagen) }}" class="d-block w-100 slider-img" alt="Torneo">
@@ -57,39 +54,34 @@
     </button>
 </div>
 
-
-
-
 <div class="container py-5">
-    <h2 class="mb-4 fw-bold">Equipos Participantes</h2>
+    <h2 class="mb-4 fw-bold text-bagado-verde-primario">Equipos Participantes</h2>
     <p class="text-muted">Conoce los equipos oficiales que están compitiendo en el torneo.</p>
     
     {% for cat in categorias %}
         <div class="mb-5">
-            <h4 class="border-bottom pb-2 text-primary fw-bold">{{ cat.nombre }}</h4>
+            <h4 class="border-bottom pb-2 text-bagado-verde-primario fw-bold">{{ cat.nombre }}</h4>
             
             {% if cat.equipos %}
-                <div class="row mt-3">
+                <div class="row mt-4">
                     {% for eq in cat.equipos %}
-                        <div class="col-md-4 mb-3">
-                            <div class="card shadow-sm h-100 border-0 bg-light">
-                                <div class="card-body text-center">
-                                        <!-- Mostrar escudo del equipo -->
-                                        {% if eq.escudo %}
-                                            <img src="{{ url_for('static', filename='uploads/' ~ eq.escudo) }}" class="escudo-md mb-3 shadow-sm" alt="Escudo {{ eq.nombre }}">
-                                        {% else %}
-                                            <!-- Escudo por defecto si no han subido nada -->
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" fill="#ccc" class="bi bi-shield-fill mb-3" viewBox="0 0 16 16">
-                                                <path d="M5.072.56C6.157.265 7.31 0 8 0s1.843.265 2.928.56c1.11.3 2.229.655 2.887.87a1.54 1.54 0 0 1 1.044 1.262c.596 4.477-.787 7.795-2.465 9.99a11.8 11.8 0 0 1-2.517 2.453 7 7 0 0 1-1.048.625c-.28.132-.581.24-.829.24s-.548-.108-.829-.24a7 7 0 0 1-1.048-.625 11.8 11.8 0 0 1-2.517-2.453C1.928 10.487.545 7.169 1.141 2.692A1.54 1.54 0 0 1 2.185 1.43 63 63 0 0 1 5.072.56z"/>
-                                            </svg>
-                                        {% endif %}
-                                        
-                                        <h5 class="card-title fw-bold text-dark">{{ eq.nombre }}</h5>
-                                        <p class="card-text small text-muted">
-                                            Delegado: {{ eq.delegado_asignado.nombres if eq.delegado_asignado else 'Sin asignar' }}
-                                        </p>
-                                        <a href="{{ url_for('main.ver_equipo', equipo_id=eq.id) }}" class="btn btn-sm btn-outline-primary">Ver Información Del Equipo</a>
-                                </div>
+                        <div class="col-md-4 mb-4">
+                            <div class="card-bagado h-100 d-flex flex-column align-items-center p-4 text-center">
+                                <!-- Mostrar escudo del equipo -->
+                                {% if eq.escudo %}
+                                    <img src="{{ url_for('static', filename='uploads/' ~ eq.escudo) }}" class="escudo-md mb-3" alt="Escudo {{ eq.nombre }}">
+                                {% else %}
+                                    <!-- Escudo por defecto -->
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" fill="var(--bagado-verde-primario)" class="bi bi-shield-fill mb-3" viewBox="0 0 16 16">
+                                        <path d="M5.072.56C6.157.265 7.31 0 8 0s1.843.265 2.928.56c1.11.3 2.229.655 2.887.87a1.54 1.54 0 0 1 1.044 1.262c.596 4.477-.787 7.795-2.465 9.99a11.8 11.8 0 0 1-2.517 2.453 7 7 0 0 1-1.048.625c-.28.132-.581.24-.829.24s-.548-.108-.829-.24a7 7 0 0 1-1.048-.625 11.8 11.8 0 0 1-2.517-2.453C1.928 10.487.545 7.169 1.141 2.692A1.54 1.54 0 0 1 2.185 1.43 63 63 0 0 1 5.072.56z"/>
+                                    </svg>
+                                {% endif %}
+                                
+                                <h5 class="fw-bold text-dark mt-2">{{ eq.nombre }}</h5>
+                                <p class="small text-muted mb-4">
+                                    Delegado: {{ eq.delegado_asignado.nombres if eq.delegado_asignado else 'Sin asignar' }}
+                                </p>
+                                <a href="{{ url_for('main.ver_equipo', equipo_id=eq.id) }}" class="btn btn-sm btn-outline-dark mt-auto w-100 rounded-pill">Ver Información Del Equipo</a>
                             </div>
                         </div>
                     {% endfor %}
@@ -103,57 +95,56 @@
     {% endfor %}
 </div>
 
-
-
-
 <!-- SECCIÓN PÚBLICA DE RESULTADOS Y ESTADÍSTICAS -->
 <div class="container py-5 mt-4 border-top">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="fw-bold text-dark">Resultados y Estadísticas del Torneo</h2>
+            <h2 class="fw-bold text-bagado-verde-primario">Resultados y Estadísticas del Torneo</h2>
             <p class="text-muted mb-0">Consulta los marcadores de los encuentros finalizados, fases y estadísticas detalladas.</p>
         </div>
     </div>
 
     <!-- Buscador público de partidos -->
-    <input type="text" id="buscadorResultados" class="form-control mb-4 border-primary shadow-sm" placeholder="🔍 Buscar por equipo, categoría o fase del partido...">
+    <div class="input-group mb-4 card-bagado p-2 border-0">
+        <span class="input-group-text bg-white border-0 text-muted">🔍</span>
+        <input type="text" id="buscadorResultados" class="form-control border-0 shadow-none" placeholder="Buscar por equipo, categoría o fase del partido...">
+    </div>
 
     <div class="row" id="contenedorPartidos">
         {% for p in partidos_jugados %}
         <div class="col-md-6 mb-4 partido-card" data-busqueda="{{ p.categoria.nombre }} {{ p.fase }} {{ p.equipo_local.nombre }} {{ p.equipo_visitante.nombre }}">
-            <div class="card border-0 shadow-sm h-100 bg-light">
-                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
-                    <span class="badge bg-primary">{{ p.categoria.nombre }}</span>
-                    <span class="fw-bold small text-uppercase">{{ p.fase }}</span>
+            <div class="card-bagado h-100">
+                <div class="card-bagado-header d-flex justify-content-between align-items-center p-3">
+                    <span class="badge bg-bagado-verde-primario">{{ p.categoria.nombre }}</span>
+                    <span class="fw-bold small text-uppercase text-bagado-amarillo-oro">{{ p.fase }}</span>
                 </div>
-                <div class="card-body text-center">
-                    <div class="row align-items-center mb-3">
+                <div class="card-body p-4 text-center">
+                    <div class="row align-items-center mb-4">
                         <div class="col-5 text-end">
-                            <h5 class="fw-bold text-primary mb-0">{{ p.equipo_local.nombre }}</h5>
+                            <h5 class="fw-bold text-dark mb-0">{{ p.equipo_local.nombre }}</h5>
                         </div>
-                        <div class="col-2">
-                            <span class="badge bg-success fs-5 px-3 py-2">{{ p.goles_local }} - {{ p.goles_visitante }}</span>
+                        <div class="col-2 px-0">
+                            <div class="bg-bagado-verde-primario text-white fw-bold py-2 rounded">{{ p.goles_local }} - {{ p.goles_visitante }}</div>
                             {% if p.penales_local is not none %}
                                 <div class="small text-muted mt-1">Penales: ({{ p.penales_local }}-{{ p.penales_visitante }})</div>
                             {% endif %}
                         </div>
                         <div class="col-5 text-start">
-                            <h5 class="fw-bold text-danger mb-0">{{ p.equipo_visitante.nombre }}</h5>
+                            <h5 class="fw-bold text-dark mb-0">{{ p.equipo_visitante.nombre }}</h5>
                         </div>
                     </div>
 
                     <hr>
 
-                    <!-- Estadísticas del partido (Goles y Tarjetas) -->
-                    <div class="text-start small">
-                        <h6 class="fw-bold text-dark mb-2">Resumen y Estadísticas:</h6>
+                    <!-- Estadísticas del partido -->
+                    <div class="text-start small mt-3">
+                        <h6 class="fw-bold text-bagado-verde-primario mb-2">Resumen y Estadísticas:</h6>
                         {% if p.estadisticas %}
                             <ul class="list-unstyled mb-0">
                                 {% for stat in p.estadisticas %}
                                     {% if stat.goles > 0 or stat.amarillas > 0 or stat.rojas > 0 %}
-                                    <li class="mb-1">
-                                        <!-- Muestra el equipo entre corchetes y luego el nombre del jugador -->
-                                        <span class="fw-semibold text-primary">[{{ stat.equipo.nombre if stat.equipo else 'Equipo' }}]</span> 
+                                    <li class="mb-2">
+                                        <span class="fw-semibold text-bagado-verde-primario">[{{ stat.equipo.nombre if stat.equipo else 'Equipo' }}]</span> 
                                         <strong class="text-dark">{{ stat.jugador.nombre if stat.jugador else 'Jugador' }}</strong>: 
                                         
                                         {% if stat.goles > 0 %}<span class="badge bg-dark">Goles: {{ stat.goles }}</span>{% endif %}
@@ -165,11 +156,11 @@
                                 {% endfor %}
                             </ul>
                         {% else %}
-                            <p class="text-muted italic mb-0">No se registraron incidencias individuales en este encuentro.</p>
+                            <p class="text-muted fst-italic mb-0">No se registraron incidencias individuales en este encuentro.</p>
                         {% endif %}
                     </div>
                 </div>
-                <div class="card-footer text-muted small bg-white text-end">
+                <div class="card-footer bg-light border-0 p-3 text-muted small text-end">
                     Cancha: {{ p.cancha or 'Por definir' }} | Fecha: {{ p.fecha or 'N/A' }}
                 </div>
             </div>
@@ -181,8 +172,6 @@
         {% endfor %}
     </div>
 
-
-
 <!-- SECCIÓN PÚBLICA DE PODIOS eSPORTS / CONSOLA -->
 {% set mostrar_podios = false %}
 {% for cat in categorias %}
@@ -192,27 +181,27 @@
 {% endfor %}
 
 {% if mostrar_podios %}
-<div class="container py-4 mt-3 border-top">
-    <h3 class="fw-bold text-dark mb-3">Cuadro de Honor - eSports</h3>
+<div class="container py-5 mt-3 border-top">
+    <h3 class="fw-bold text-bagado-verde-primario mb-4">Cuadro de Honor - eSports</h3>
     <div class="row">
         {% for cat in categorias %}
             {% if cat.podio and (cat.podio.campeon or cat.podio.subcampeon or cat.podio.tercer_puesto) %}
-            <div class="col-md-6 mb-4">
-                <div class="card border-0 shadow-sm bg-light h-100">
-                    <div class="card-header bg-success text-white fw-bold">
-                        {{ cat.nombre }}
+            <div class="col-md-4 mb-4">
+                <div class="card-bagado p-0 h-100 border-top border-4 border-warning">
+                    <div class="card-bagado-header p-3 text-center">
+                        <h5 class="mb-0 fw-bold">{{ cat.nombre }}</h5>
                     </div>
-                    <div class="card-body">
-                        <ul class="list-group list-group-flush bg-transparent">
-                            <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center">
+                    <div class="card-body p-4">
+                        <ul class="list-group list-group-flush border-0">
+                            <li class="list-group-item border-0 d-flex justify-content-between align-items-center px-0">
                                 <span class="fw-bold text-warning">Campeón:</span>
                                 <span class="badge bg-dark fs-6">{{ cat.podio.campeon or 'N/A' }}</span>
                             </li>
-                            <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center">
+                            <li class="list-group-item border-0 d-flex justify-content-between align-items-center px-0">
                                 <span class="fw-bold text-secondary">Subcampeón:</span>
                                 <span class="badge bg-secondary fs-6">{{ cat.podio.subcampeon or 'N/A' }}</span>
                             </li>
-                            <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center">
+                            <li class="list-group-item border-0 d-flex justify-content-between align-items-center px-0">
                                 <span class="fw-bold text-danger">Tercer Puesto:</span>
                                 <span class="badge bg-danger fs-6">{{ cat.podio.tercer_puesto or 'N/A' }}</span>
                             </li>
@@ -225,8 +214,6 @@
     </div>
 </div>
 {% endif %}
-
-
 
 </div>
 

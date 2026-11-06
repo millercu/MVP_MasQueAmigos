@@ -1,49 +1,32 @@
 {% extends "base.html" %}
 {% block title %}Iniciar Sesión - Torneo Bagadó{% endblock %}
-
 {% block content %}
-<div class="row justify-content-center">
+<div class="row justify-content-center ">
     <div class="col-md-5">
-        <div class="card-bagado p-4 shadow-sm">
-            <h3 class="mb-3 text-center text-success fw-bold">Iniciar Sesión</h3>
-            
-            {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-        {% for category, message in messages %}
-            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        {% endfor %}
-    {% endif %}
-{% endwith %}
-
-            <form method="POST">
+        <div class="card-bagado p-5 auth-card">
+            <h3 class="mb-4 text-center text-bagado-verde fw-bold">Iniciar Sesión</h3>
+            <form method="POST" class="auth-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <div class="mb-3">
                     <label class="form-label fw-semibold">Correo Electrónico</label>
-                    <input type="email" name="email" class="form-control" required placeholder="correo@ejemplo.com">
+                    <input type="email" name="email" class="form-control form-control-lg" required placeholder="correo@ejemplo.com">
                 </div>
-                <div class="mb-3">
+                <div class="mb-4">
                     <label class="form-label fw-semibold">Contraseña</label>
-                    <input type="password" name="password" class="form-control" required placeholder="Tu contraseña">
+                    <input type="password" name="password" class="form-control form-control-lg" required placeholder="Tu contraseña">
                 </div>
-                <button type="submit" class="btn btn-primario w-100 py-2 fw-bold">Entrar</button>
-
+                <button type="submit" class="btn btn-bagado-main w-100 py-2 fw-bold fs-5 rounded-pill">Entrar</button>
                 <div class="text-center mt-3">
-                    <a href="{{ url_for('auth.solicitar_recuperacion') }}" class="text-decoration-none small text-primary">¿Olvidaste tu contraseña?</a>
+                    <a href="{{ url_for('auth.solicitar_recuperacion') }}" class="text-decoration-none small text-muted">¿Olvidaste tu contraseña?</a>
                 </div>
             </form>
-
             <hr class="my-4">
-                <a href="{{ url_for('auth.login_google') }}" class="btn btn-outline-dark w-100 fw-bold d-flex align-items-center justify-content-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-google" viewBox="0 0 16 16">
-                    <path d="M15.545 6.558a9.42 9.42 0 0 1 .139 1.626c0 2.434-.87 4.492-2.384 5.885h.002C11.978 15.292 10.158 16 8 16A8 8 0 1 1 8 0a7.689 7.689 0 0 1 5.352 2.082l-2.284 2.284A4.347 4.347 0 0 0 8 3.166c-2.087 0-3.86 1.408-4.492 3.304a4.792 4.792 0 0 0 0 3.063h.003c.635 1.893 2.405 3.301 4.492 3.301 1.078 0 2.004-.276 2.722-.764h-.003a3.702 3.702 0 0 0 1.599-2.431H8v-3.08h7.545z"/>
-                    </svg>
-                    Continuar con Google
-                </a>
-
-            <div class="text-center mt-3">
-                <a href="{{ url_for('auth.registro') }}" class="text-decoration-none text-success">¿No tienes cuenta? Regístrate aquí</a>
+            <a href="{{ url_for('auth.login_google') }}" class="btn btn-outline-dark w-100 fw-bold d-flex align-items-center justify-content-center gap-2 rounded-pill py-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-google" viewBox="0 0 16 16"><path d="M15.545 6.558a9.42 9.42 0 0 1 .139 1.626c0 2.434-.87 4.492-2.384 5.885h.002C11.978 15.292 10.158 16 8 16A8 8 0 1 1 8 0a7.689 7.689 0 0 1 5.352 2.082l-2.284 2.284A4.347 4.347 0 0 0 8 3.166c-2.087 0-3.86 1.408-4.492 3.304a4.792 4.792 0 0 0 0 3.063h.003c.635 1.893 2.405 3.301 4.492 3.301 1.078 0 2.004-.276 2.722-.764h-.003a3.702 3.702 0 0 0 1.599-2.431H8v-3.08h7.545z"/></svg>
+                Continuar con Google
+            </a>
+            <div class="text-center mt-4">
+                <a href="{{ url_for('auth.registro') }}" class="text-decoration-none text-bagado-verde fw-semibold">¿No tienes cuenta? Regístrate aquí</a>
             </div>
         </div>
     </div>

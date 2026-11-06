@@ -2,84 +2,122 @@
 {% block title %}Panel eSports - Consola{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="fw-bold text-success">Panel de Podios - eSports y Consola</h2>
-            <p class="text-muted mb-0">Torneo Activo: <span class="fw-bold text-dark">{{ torneo_activo.nombre if torneo_activo else 'Ninguno' }}</span></p>
+<div class="container py-4 esports-admin-page">
+    <header class="esports-page-header mb-4">
+        <div class="esports-page-heading">
+            <span class="esports-eyebrow">Administración de competición</span>
+            <h1 class="esports-page-title">Panel de podios eSports</h1>
+            <p class="esports-page-subtitle mb-0">
+                Torneo activo:
+                <strong>{{ torneo_activo.nombre if torneo_activo else 'Ninguno' }}</strong>
+            </p>
         </div>
-        <a href="{{ url_for('admin.panel') }}" class="btn btn-outline-dark fw-bold">Ir al Panel General de Fútbol</a>
-    </div>
+        <a href="{{ url_for('admin.panel') }}" class="btn btn-primario esports-back-button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                <path fill-rule="evenodd" d="M15 8a.5.5 0 0 1-.5.5H2.707l3.147 3.146a.5.5 0 0 1-.708.708l-4-4a.5.5 0 0 1 0-.708l4-4a.5.5 0 1 1 .708.708L2.707 7.5H14.5A.5.5 0 0 1 15 8z"/>
+            </svg>
+            Panel general de fútbol
+        </a>
+    </header>
 
-    <div class="card border-0 shadow-sm p-4 mb-4 bg-light">
-        <h4 class="mb-3 fw-bold">Selección de Podios por Categoría</h4>
-        <p class="text-muted small">Elige a los ganadores directamente de la lista de participantes inscritos en cada categoría (puedes crear categorías de eSports desde el panel general).</p>
+    <section class="card-bagado esports-main-card p-3 p-md-4">
+        <div class="esports-section-heading mb-4">
+            <div>
+                <span class="esports-eyebrow">Resultados oficiales</span>
+                <h2 class="esports-section-title mb-1">Selección de podios por categoría</h2>
+                <p class="text-muted mb-0">Selecciona los participantes inscritos para registrar el campeón, subcampeón y tercer puesto de cada categoría.</p>
+            </div>
+        </div>
 
         {% for cat in categorias %}
-        <div class="card mb-4 border shadow-sm">
-            <div class="card-header bg-dark text-white fw-bold">
-                Categoría: {{ cat.nombre }} ({{ cat.equipos|length }} Participantes inscritos)
+        <article class="podium-category-card mb-4">
+            <header class="podium-category-header">
+                <div class="podium-category-heading">
+                    <span class="podium-category-kicker">Categoría</span>
+                    <h3 class="podium-category-name">{{ cat.nombre }}</h3>
+                </div>
+                <span class="podium-participant-count">
+                    {{ cat.equipos|length }} participante{% if cat.equipos|length != 1 %}s{% endif %}
+                </span>
+            </header>
+
+            <div class="podium-category-body">
+                <form method="POST" action="{{ url_for('fifa.guardar_podio', categoria_id=cat.id) }}" class="podium-form">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+                    <div class="podium-fields-grid">
+                        <div class="podium-field podium-field--first">
+                            <label for="campeon-{{ cat.id }}" class="form-label podium-field-label">
+                                <span class="podium-position-number">01</span>
+                                Campeón <span class="podium-place-description">Primer puesto</span>
+                            </label>
+                            <select id="campeon-{{ cat.id }}" name="campeon" class="form-select" required>
+                                <option value="">Seleccionar participante</option>
+                                {% for eq in cat.equipos %}
+                                    <option value="{{ eq.nombre }}" {% if cat.podio and cat.podio.campeon == eq.nombre %}selected{% endif %}>{{ eq.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="podium-field podium-field--second">
+                            <label for="subcampeon-{{ cat.id }}" class="form-label podium-field-label">
+                                <span class="podium-position-number">02</span>
+                                Subcampeón <span class="podium-place-description">Segundo puesto</span>
+                            </label>
+                            <select id="subcampeon-{{ cat.id }}" name="subcampeon" class="form-select" required>
+                                <option value="">Seleccionar participante</option>
+                                {% for eq in cat.equipos %}
+                                    <option value="{{ eq.nombre }}" {% if cat.podio and cat.podio.subcampeon == eq.nombre %}selected{% endif %}>{{ eq.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="podium-field podium-field--third">
+                            <label for="tercer-puesto-{{ cat.id }}" class="form-label podium-field-label">
+                                <span class="podium-position-number">03</span>
+                                Tercer puesto <span class="podium-place-description">Opcional</span>
+                            </label>
+                            <select id="tercer-puesto-{{ cat.id }}" name="tercer_puesto" class="form-select">
+                                <option value="">Seleccionar participante</option>
+                                {% for eq in cat.equipos %}
+                                    <option value="{{ eq.nombre }}" {% if cat.podio and cat.podio.tercer_puesto == eq.nombre %}selected{% endif %}>{{ eq.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <footer class="podium-form-actions">
+                        {% if cat.podio %}
+                            <button type="submit"
+                                    formaction="{{ url_for('fifa.eliminar_podio', categoria_id=cat.id) }}"
+                                    class="btn btn-outline-danger"
+                                    onclick="return confirm('¿Estás seguro de eliminar el podio registrado para esta categoría?');">
+                                Eliminar podio
+                            </button>
+                        {% else %}
+                            <span class="podium-actions-spacer" aria-hidden="true"></span>
+                        {% endif %}
+
+                        <button type="submit" class="btn btn-primario podium-save-button">
+                            Guardar podio
+                        </button>
+                    </footer>
+                </form>
             </div>
-            <div class="card-body">
-                <form method="POST" action="{{ url_for('fifa.guardar_podio', categoria_id=cat.id) }}" class="row g-3">
-    
-    <!-- Campeón -->
-    <div class="col-md-4">
-        <label class="form-label small fw-bold text-warning">Campeón (1er Puesto)</label>
-        <select name="campeon" class="form-select border-warning" required>
-            <option value="">-- Seleccionar participante --</option>
-            {% for eq in cat.equipos %}
-                <option value="{{ eq.nombre }}" {% if cat.podio and cat.podio.campeon == eq.nombre %}selected{% endif %}>{{ eq.nombre }}</option>
-            {% endfor %}
-        </select>
-    </div>
-
-    <!-- Subcampeón -->
-    <div class="col-md-4">
-        <label class="form-label small fw-bold text-secondary">Subcampeón (2do Puesto)</label>
-        <select name="subcampeon" class="form-select border-secondary" required>
-            <option value="">-- Seleccionar participante --</option>
-            {% for eq in cat.equipos %}
-                <option value="{{ eq.nombre }}" {% if cat.podio and cat.podio.subcampeon == eq.nombre %}selected{% endif %}>{{ eq.nombre }}</option>
-            {% endfor %}
-        </select>
-    </div>
-
-    <!-- Tercer Puesto -->
-    <div class="col-md-4">
-        <label class="form-label small fw-bold text-danger">Tercer Puesto</label>
-        <select name="tercer_puesto" class="form-select border-danger">
-            <option value="">-- Seleccionar participante (Opcional) --</option>
-            {% for eq in cat.equipos %}
-                <option value="{{ eq.nombre }}" {% if cat.podio and cat.podio.tercer_puesto == eq.nombre %}selected{% endif %}>{{ eq.nombre }}</option>
-            {% endfor %}
-        </select>
-    </div>
-
-    <!-- Botones de acción separados correctamente con formaction -->
-    <div class="col-12 d-flex justify-content-between align-items-center mt-3">
-        <!-- Si ya hay un podio guardado, mostramos el botón de eliminar -->
-        {% if cat.podio %}
-        <button type="submit" 
-                formaction="{{ url_for('fifa.eliminar_podio', categoria_id=cat.id) }}" 
-                class="btn btn-sm btn-outline-danger fw-bold" 
-                onclick="return confirm('¿Estás seguro de eliminar el podio registrado para esta categoría?');">
-            Eliminar Podio
-        </button>
+        </article>
         {% else %}
-        <div></div>
-        {% endif %}
-
-        <button type="submit" class="btn btn-success fw-bold px-4">Guardar Podio</button>
-    </div>
-</form>
+        <div class="esports-empty-state text-center p-4 p-md-5">
+            <div class="esports-empty-icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M2.5 2A1.5 1.5 0 0 0 1 3.5v9A1.5 1.5 0 0 0 2.5 14h11a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 13.5 2h-11zM2 3.5a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 .5.5V5H2V3.5zM2 6h12v6.5a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5V6z"/>
+                    <path d="M4 8h2v2H4zM7 8h2v2H7zM10 8h2v2h-2z"/>
+                </svg>
             </div>
-        </div>
-        {% else %}
-        <div class="alert alert-warning text-center">
-            No hay categorías registradas en el torneo activo. Recuerda crear una categoría (ej. "eSports") desde el panel de administración para poder listar los participantes aquí.
+            <h3 class="esports-empty-title">Todavía no hay categorías</h3>
+            <p class="text-muted mb-3">Crea una categoría de eSports desde el panel general para poder registrar aquí sus participantes y podios.</p>
+            <a href="{{ url_for('admin.panel') }}" class="btn btn-primario">Ir al panel general</a>
         </div>
         {% endfor %}
-    </div>
+    </section>
 </div>
 {% endblock %}

@@ -1,6 +1,8 @@
-from flask import Flask
+from flask import Flask, render_template
 from config import Config
 from app.extensions import db, oauth, migrate, mail
+
+
 
 def create_app(config_class=Config):
     app = Flask(__name__)
@@ -26,6 +28,11 @@ def create_app(config_class=Config):
     from app.blueprints.fifa_bp import fifa_bp
     from app.blueprints.main_bp import main_bp
 
+    from flask_talisman import Talisman
+
+    from flask_wtf.csrf import CSRFProtect
+    csrf = CSRFProtect()
+
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(delegado_bp, url_prefix='/delegado')
     app.register_blueprint(admin_bp, url_prefix='/admin')
@@ -33,6 +40,28 @@ def create_app(config_class=Config):
     app.register_blueprint(yeimi_bp, url_prefix='/yeimi')
     app.register_blueprint(fifa_bp, url_prefix='/fifa')
     app.register_blueprint(main_bp)
+
+    app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # Límite de 5 MB por archivo
+
+    app.config['SESSION_COOKIE_SECURE'] = True      # Solo transmite cookies por HTTPS
+    app.config['SESSION_COOKIE_HTTPONLY'] = True    # Evita que el JavaScript acceda a la cookie (mitiga ataques XSS)
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'   # Protege la cookie contra envíos cruzados
+
+
+    @app.errorhandler(404)
+    def pagina_no_encontrada(e):
+        return render_template('errores/404.html'), 404
+
+    @app.errorhandler(500)
+    def error_interno_servidor(e):
+        return render_template('errores/500.html'), 500
+
+    @app.errorhandler(403)
+    def acceso_prohibido(e):
+        return render_template('errores/403.html'), 403
+
+    csrf.init_app(app)
+    Talisman(app, content_security_policy=None)
 
     # Ruta de validación para confirmar que el servidor levanta correctamente
     

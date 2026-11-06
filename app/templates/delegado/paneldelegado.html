@@ -2,16 +2,16 @@
 {% block title %}Panel de Delegado - Torneo Bagadó{% endblock %}
 
 {% block content %}
-<div class="container py-4">
+<div class="container py-4 delegado-panel">
     
     {% if equipo %}
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 delegado-panel-heading">
         <div>
-            <h2 class="fw-bold text-dark">Mi Panel de Equipo</h2>
-            <p class="text-muted mb-0">Gestión de la plantilla: <span class="text-success fw-bold">{{ equipo.nombre }}</span> (Categoría: {{ equipo.categoria.nombre if equipo.categoria else 'Sin Categoría' }})</p>        </div>
+            <h2 class="fw-bold text-bagado-verde-primario">Mi Panel de Equipo</h2>
+            <p class="text-muted mb-0">Gestión de la plantilla: <span class="text-bagado-verde-primario fw-bold">{{ equipo.nombre }}</span> (Categoría: {{ equipo.categoria.nombre if equipo.categoria else 'Sin Categoría' }})</p>        </div>
         <div>
             {% if config and config.mercado_abierto %}
-                <span class="badge bg-success shadow-sm px-3 py-2">MERCADO ABIERTO</span>
+                <span class="badge bg-bagado-verde-primario shadow-sm px-3 py-2">MERCADO ABIERTO</span>
             {% else %}
                 <span class="badge bg-danger shadow-sm px-3 py-2">MERCADO CERRADO</span>
             {% endif %}
@@ -19,17 +19,16 @@
     </div>
 
     <!-- Sistema de pestañas (Tabs) -->
-    <ul class="nav nav-tabs mb-4" id="delegadoTab" role="tablist">
+    <ul class="nav nav-tabs mb-4 delegado-tabs" id="delegadoTab" role="tablist">
         <li class="nav-item" role="presentation">
             <button class="nav-link active fw-semibold" id="plantilla-tab" data-bs-toggle="tab" data-bs-target="#plantilla-content" type="button" role="tab">Mi Plantilla</button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link fw-semibold text-primary" id="mercado-tab" data-bs-toggle="tab" data-bs-target="#mercado-content" type="button" role="tab">Ventana de Fichajes</button>
+            <button class="nav-link fw-semibold text-bagado-verde-primario" id="mercado-tab" data-bs-toggle="tab" data-bs-target="#mercado-content" type="button" role="tab">Ventana de Fichajes</button>
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link fw-semibold" id="negociaciones-tab" data-bs-toggle="tab" data-bs-target="#negociaciones-content" type="button" role="tab">Mis Negociaciones</button>
         </li>
-
         <li class="nav-item" role="presentation">
             <button class="nav-link fw-semibold" id="docs-tab" data-bs-toggle="tab" data-bs-target="#docs-content" type="button" role="tab">Documentos y Reglamentos</button>
         </li>
@@ -40,82 +39,83 @@
         
         <!-- PESTAÑA 1: MI PLANTILLA -->
         <div class="tab-pane fade show active" id="plantilla-content" role="tabpanel">
-            <div class="card border-0 shadow-sm p-4">
-                <h4 class="mb-3 text-dark fw-bold">Jugadores Inscritos</h4>
+            <div class="card-bagado p-4 mb-5">
+                <h4 class="mb-4 text-dark fw-bold">Jugadores Inscritos</h4>
                 
                 <!-- Formulario real para agregar jugador -->
-            <div class="card border-0 shadow-sm p-4 mb-4 bg-light">
-                <h5 class="mb-3 text-dark fw-bold">Inscribir Nuevo Integrante</h5>
-                <form method="POST" action="{{ url_for('delegado.agregar_jugador') }}" enctype="multipart/form-data">
-                    <div class="row">
-                        <div class="col-md-3 mb-3">
-                            <label class="form-label fw-semibold small">Nombre Completo</label>
-                            <input type="text" name="nombre" class="form-control form-control-sm" required>
+                <div class="card-bagado border border-bagado-borde shadow-none bg-light p-4 mb-5">
+                    <h5 class="mb-3 text-bagado-verde-primario fw-bold">Inscribir Nuevo Integrante</h5>
+                    <form method="POST" action="{{ url_for('delegado.agregar_jugador') }}" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label fw-semibold small">Nombre Completo</label>
+                                <input type="text" name="nombre" class="form-control form-control-sm" required>
+                            </div>
+                            <div class="col-md-2 mb-3">
+                                <label class="form-label fw-semibold small">Tipo Documento</label>
+                                <select name="tipo_documento" class="form-select form-select-sm" required>
+                                    <option value="CC" {% if j and j.tipo_documento == 'CC' %}selected{% endif %}>CC</option>
+                                    <option value="TI" {% if j and j.tipo_documento == 'TI' %}selected{% endif %}>TI</option>
+                                    <option value="CE" {% if j and j.tipo_documento == 'CE' %}selected{% endif %}>CE</option>
+                                    <option value="Pasaporte" {% if j and j.tipo_documento == 'Pasaporte' %}selected{% endif %}>Pasaporte</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label fw-semibold small">N° Documento</label>
+                                <input type="text" name="documento" class="form-control form-control-sm" required pattern="\d{8,10}" title="Debe contener entre 8 y 10 dígitos numéricos">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label fw-semibold small">EPS</label>
+                                <input type="text" name="eps" class="form-control form-control-sm">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label fw-semibold small">Rol en Equipo</label>
+                                <select name="rol_equipo" class="form-select form-select-sm selector-rol" required onchange="togglePosicion(this)">
+                                    <option value="Deportista" {% if j and j.rol_equipo == 'Deportista' %}selected{% endif %}>Deportista</option>
+                                    <option value="Cuerpo Tecnico" {% if j and j.rol_equipo == 'Cuerpo Tecnico' %}selected{% endif %}>Cuerpo Técnico</option>
+                                    <option value="Delegado" {% if j and j.rol_equipo == 'Delegado' %}selected{% endif %}>Delegado</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 mb-3 posicion-container">
+                                <label class="form-label fw-semibold small">Posición</label>
+                                <input type="text" name="posicion" class="form-control form-control-sm input-posicion" placeholder="Ej. Delantero" value="{{ j.posicion if j else '' }}">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label fw-semibold small">Inicio Contrato</label>
+                                <input type="date" name="fecha_inicio" class="form-control form-control-sm">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label fw-semibold small">Fin Contrato</label>
+                                <input type="date" name="fecha_fin" class="form-control form-control-sm">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label fw-semibold small">Cláusula Rescisión ($)</label>
+                                <input type="text" name="clausula_rescision" class="form-control form-control-sm" placeholder="Ej: 2.000.000" value="0">                        </div>
                         </div>
-                        <div class="col-md-2 mb-3">
-                            <label class="form-label fw-semibold small">Tipo Documento</label>
-                            <select name="tipo_documento" class="form-select form-select-sm" required>
-                                <option value="CC" {% if j and j.tipo_documento == 'CC' %}selected{% endif %}>CC</option>
-                                <option value="TI" {% if j and j.tipo_documento == 'TI' %}selected{% endif %}>TI</option>
-                                <option value="CE" {% if j and j.tipo_documento == 'CE' %}selected{% endif %}>CE</option>
-                                <option value="Pasaporte" {% if j and j.tipo_documento == 'Pasaporte' %}selected{% endif %}>Pasaporte</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <label class="form-label fw-semibold small">N° Documento</label>
-                            <input type="text" name="documento" class="form-control form-control-sm" required pattern="\d{8,10}" title="Debe contener entre 8 y 10 dígitos numéricos">
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <label class="form-label fw-semibold small">EPS</label>
-                            <input type="text" name="eps" class="form-control form-control-sm">
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <label class="form-label fw-semibold small">Rol en Equipo</label>
-                            <select name="rol_equipo" class="form-select form-select-sm selector-rol" required onchange="togglePosicion(this)">
-                                <option value="Deportista" {% if j and j.rol_equipo == 'Deportista' %}selected{% endif %}>Deportista</option>
-                                <option value="Cuerpo Tecnico" {% if j and j.rol_equipo == 'Cuerpo Tecnico' %}selected{% endif %}>Cuerpo Técnico</option>
-                                <option value="Delegado" {% if j and j.rol_equipo == 'Delegado' %}selected{% endif %}>Delegado</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3 mb-3 posicion-container">
-                            <label class="form-label fw-semibold small">Posición</label>
-                            <input type="text" name="posicion" class="form-control form-control-sm input-posicion" placeholder="Ej. Delantero" value="{{ j.posicion if j else '' }}">
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <label class="form-label fw-semibold small">Inicio Contrato</label>
-                            <input type="date" name="fecha_inicio" class="form-control form-control-sm">
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <label class="form-label fw-semibold small">Fin Contrato</label>
-                            <input type="date" name="fecha_fin" class="form-control form-control-sm">
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <label class="form-label fw-semibold small">Cláusula Rescisión ($)</label>
-                            <input type="text" name="clausula_rescision" class="form-control form-control-sm" placeholder="Ej: 2.000.000" value="0">                        </div>
-                    </div>
 
-                    <div class="col-md-3 mb-3">
-                        <label class="form-label fw-semibold small">Foto del Jugador</label>
-                        <input type="file" name="foto" class="form-control form-control-sm" accept="image/*">
-                    </div>
-                    <div class="d-flex justify-content-end">
-                        <button type="submit" class="btn btn-success fw-bold px-4">Registrar en Plantilla</button>
-                    </div>
-                </form>
-            </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-semibold small">Foto del Jugador</label>
+                            <input type="file" name="foto" class="form-control form-control-sm" accept="image/*">
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-primario fw-bold px-5">Registrar en Plantilla</button>
+                        </div>
+                    </form>
+                </div>
 
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle">
+                    <table class="table table-hover align-middle text-center">
                         <thead class="table-dark">
                             <tr>
                                 <th>Foto</th>
-                                <th>Nombre</th>
-                                <th>Tipo Documento</th>
+                                <th class="text-start">Nombre</th>
+                                <th>T. Doc</th>
                                 <th>Documento</th>
                                 <th>EPS</th>
                                 <th>Rol</th>
                                 <th>Posición</th>
-                                <th>Inicio Contrato</th>
+                                <th>Inicio</th>
                                 <th>Fin Contrato</th>
                                 <th>Cláusula</th>
                                 <th>Acciones</th>
@@ -126,35 +126,33 @@
                             <tr>
                                 <td>
                                     {% if j.foto %}
-                                        <img src="{{ url_for('static', filename='uploads/' ~ j.foto) }}" class="escudo-sm shadow-sm" alt="Foto">
+                                        <img src="{{ url_for('static', filename='uploads/' ~ j.foto) }}" class="escudo-sm" alt="Foto">
                                     {% else %}
-                                        <!-- Avatar por defecto -->
                                         <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="#ccc" class="bi bi-person-circle" viewBox="0 0 16 16">
                                         <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
                                         <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/>
                                         </svg>
                                     {% endif %}
                                 </td>
-                                <td class="fw-bold">{{ j.nombre }}</td>
-                                <td><span class="badge bg-light text-dark border">{{ j.tipo_documento or 'CC' }}</td>
+                                <td class="text-start fw-bold">{{ j.nombre }}</td>
+                                <td><span class="badge bg-light text-dark border">{{ j.tipo_documento or 'CC' }}</span></td>
                                 <td>{{ j.documento }}</td>
                                 <td>{{ j.eps or 'N/A' }}</td>
                                 <td>{{ j.rol_equipo }}</td>
                                 <td>{{ j.posicion or '-' }}</td>
                                 <td>{{ j.fecha_inicio or '-' }}</td>
                                 <td>{{ j.fecha_fin or 'Sin definir' }}</td>
-                                <td>$ {{ "{:,.0f}".format(j.clausula_rescision or 0).replace(',', '.') }} COP</td>                                <td>
-                                    <div class="d-flex gap-1">
-                                        <!-- Botón Editar (Abre Modal) -->
-                                        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editModal{{ j.id }}" title="Editar">
+                                <td class="text-bagado-verde-primario fw-bold">$ {{ "{:,.0f}".format(j.clausula_rescision or 0).replace(',', '.') }}</td>                                
+                                <td>
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <button type="button" class="btn btn-sm btn-outline-dark" data-bs-toggle="modal" data-bs-target="#editModal{{ j.id }}" title="Editar">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16">
                                               <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"/>
                                             </svg>
                                         </button>
-                                        
-                                        <!-- Botón Eliminar -->
                                         <form method="POST" action="{{ url_for('delegado.eliminar_jugador', jugador_id=j.id) }}" style="display:inline;" onsubmit="return confirm('¿Estás seguro de eliminar este registro?');">
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                            <button type="submit" class="btn btn-sm btn-danger" title="Eliminar">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
                                                   <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z"/>
                                                   <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z"/>
@@ -163,12 +161,13 @@
                                         </form>
                                     </div>
 
-                                    <!-- Modal de Edición para este jugador -->
+                                    <!-- Modal de Edición -->
                                     <div class="modal fade" id="editModal{{ j.id }}" tabindex="-1" aria-hidden="true">
                                         <div class="modal-dialog modal-lg">
                                             <div class="modal-content">
                                                 <form method="POST" action="{{ url_for('delegado.editar_jugador', jugador_id=j.id) }}" enctype="multipart/form-data">
-                                                    <div class="modal-header bg-dark text-white">
+                                                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                                    <div class="modal-header bg-bagado-negro text-white">
                                                         <h5 class="modal-title fw-bold">Editar a {{ j.nombre }}</h5>
                                                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                                     </div>
@@ -219,7 +218,7 @@
                                                                 <input type="date" name="fecha_fin" class="form-control form-control-sm" value="{{ j.fecha_fin or '' }}">
                                                             </div>
 
-                                                            <div class="col-md-4 mb-3">
+                                                            <div class="col-md-6 mb-3">
                                                                 <label class="form-label fw-semibold small">Foto del Jugador</label>
                                                                 <input type="file" name="foto" class="form-control form-control-sm" accept="image/*">
                                                                 {% if j.foto %}
@@ -232,8 +231,8 @@
                                                         </div>
                                                     </div>
                                                     <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                                        <button type="submit" class="btn btn-primary fw-bold">Guardar Cambios</button>
+                                                        <button type="button" class="btn btn-outline-dark" data-bs-dismiss="modal">Cancelar</button>
+                                                        <button type="submit" class="btn btn-primario fw-bold">Guardar Cambios</button>
                                                     </div>
                                                 </form>
                                             </div>
@@ -243,40 +242,43 @@
                             </tr>
                             {% else %}
                             <tr>
-                                <td colspan="9" class="text-center text-muted py-3">No hay jugadores inscritos en este equipo.</td>
+                                <td colspan="11" class="text-center text-muted py-5">No hay jugadores inscritos en este equipo.</td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
-            </div>
 
-            <!-- En paneldelegado.html -->
-            <form method="POST" action="{{ url_for('delegado.subir_escudo') }}" enctype="multipart/form-data" class="mb-4">
-                <label class="form-label fw-bold">Actualizar Escudo del Equipo</label>
-                <div class="input-group">
-                    <input type="file" name="escudo" class="form-control" accept="image/*" required>
-                    <button type="submit" class="btn btn-dark">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-upload" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/></svg> Subir
-                    </button>
-                </div>
-            </form>
+                <hr class="my-4">
+                
+                <form method="POST" action="{{ url_for('delegado.subir_escudo') }}" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <label class="form-label fw-bold text-bagado-verde-primario">Actualizar Escudo Oficial del Equipo</label>
+                    <div class="input-group w-50 delegado-upload-group">
+                        <input type="file" name="escudo" class="form-control" accept="image/*" required>
+                        <button type="submit" class="btn btn-bagado-negro text-white bg-dark">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-upload" viewBox="0 0 16 16"><path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/><path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/></svg> Subir Escudo
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
 
         <!-- PESTAÑA 2: MERCADO DE FICHAJES -->
         <div class="tab-pane fade" id="mercado-content" role="tabpanel">
-            <div class="card border-0 shadow-sm p-4">
-                <h4 class="mb-3 text-dark fw-bold">Jugadores Disponibles</h4>
+            <div class="card-bagado p-4 mb-4">
+                <h4 class="mb-3 text-bagado-verde-primario fw-bold">Jugadores Disponibles</h4>
                 
                 {% if config and config.mercado_abierto %}
                     <p class="text-muted small">Explora jugadores de otros equipos o agentes libres y envíales una oferta formal.</p>
                     
-
-                    <!-- NUEVO BUSCADOR -->
-                    <input type="text" id="buscadorMercado" class="form-control mb-3 border-primary" placeholder="🔍 Escribe el nombre del jugador o del equipo para filtrar...">
+                    <div class="input-group mb-4">
+                        <span class="input-group-text bg-white border-end-0">🔍</span>
+                        <input type="text" id="buscadorMercado" class="form-control border-start-0 ps-0" placeholder="Escribe el nombre del jugador o del equipo para filtrar...">
+                    </div>
 
                     <div class="table-responsive">
-                        <table class="table table-striped align-middle" id="tablaMercado">
+                        <table class="table table-hover align-middle" id="tablaMercado">
                             <thead class="table-dark">
                                 <tr>
                                     <th>Nombre</th>
@@ -288,37 +290,34 @@
                             </thead>
                             <tbody>
                                 {% for j in mercado %}
-                                <!-- NUEVO: Inyectamos los datos exactos y limpios en el atributo "data-busqueda" de la fila -->
                                 <tr data-busqueda="{{ j.nombre }} {{ j.posicion or '' }} {{ j.equipo.nombre if j.equipo else 'Agente Libre' }}">
-                                    
                                     <td class="fw-bold">{{ j.nombre }}</td>
                                     <td>{{ j.posicion or '-' }}</td>
                                     <td>
                                         {% if j.equipo %}
                                             <span class="badge bg-secondary">{{ j.equipo.nombre }}</span>
                                         {% else %}
-                                            <span class="badge bg-success">Agente Libre</span>
+                                            <span class="badge bg-bagado-verde-primario">Agente Libre</span>
                                         {% endif %}
                                     </td>
-                                    <td class="text-success fw-bold">$ {{ "{:,.0f}".format(j.clausula_rescision or 0).replace(',', '.') }} COP</td>
+                                    <td class="text-bagado-verde-primario fw-bold">$ {{ "{:,.0f}".format(j.clausula_rescision or 0).replace(',', '.') }} COP</td>
                                     <td>
-                                        <!-- Botón para abrir el Modal de Oferta -->
-                                        <button type="button" class="btn btn-sm btn-primary fw-bold" data-bs-toggle="modal" data-bs-target="#ofertaModal{{ j.id }}">
+                                        <button type="button" class="btn btn-sm btn-primario fw-bold" data-bs-toggle="modal" data-bs-target="#ofertaModal{{ j.id }}">
                                             Hacer Oferta
                                         </button>
                                         
-                                        <!-- Modal de Oferta Fichaje (TU CÓDIGO ACTUAL SE MANTIENE INTACTO AQUÍ) -->
+                                        <!-- Modal de Oferta Fichaje -->
                                         <div class="modal fade" id="ofertaModal{{ j.id }}" tabindex="-1" aria-hidden="true">
-                                            <!-- ... Todo el contenido de tu modal ... -->
                                             <div class="modal-dialog">
                                                 <div class="modal-content">
                                                     <form method="POST" action="{{ url_for('delegado.ofertar', jugador_id=j.id) }}">
-                                                        <div class="modal-header bg-dark text-white">
+                                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                                        <div class="modal-header bg-bagado-negro text-white">
                                                             <h5 class="modal-title fw-bold">Negociar por {{ j.nombre }}</h5>
                                                             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                                         </div>
                                                         <div class="modal-body text-start">
-                                                            <p class="text-muted small">Cláusula actual: <strong>$ {{ "{:,.0f}".format(j.clausula_rescision or 0).replace(',', '.') }} COP</strong> | Equipo: {{ j.equipo.nombre if j.equipo else 'Libre' }}</p>                                                            
+                                                            <p class="text-muted small mb-4">Cláusula actual: <strong class="text-bagado-verde-primario">$ {{ "{:,.0f}".format(j.clausula_rescision or 0).replace(',', '.') }} COP</strong> | Equipo: {{ j.equipo.nombre if j.equipo else 'Libre' }}</p>                                                            
                                                             <div class="mb-3">
                                                                 <label class="form-label fw-bold">Tipo de Traspaso</label>
                                                                 <select name="tipo" class="form-select" required>
@@ -328,10 +327,9 @@
                                                             </div>
                                                             <div class="mb-3">
                                                                 <label class="form-label fw-bold">Monto Adicional por Transferencia ($)</label>
-                                                                <input type="text" name="monto" class="form-control border-primary" required placeholder="Ej: 1.000.000">
-                                                                <div class="form-text text-success fw-semibold small mt-1">
-                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-info-circle-fill me-1" viewBox="0 0 16 16"><path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/></svg>
-                                                                    Si es "Compra Definitiva", el sistema sumará automáticamente la cláusula de $ {{ "{:,.0f}".format(j.clausula_rescision or 0).replace(',', '.') }} COP al valor final de tu oferta.
+                                                                <input type="text" name="monto" class="form-control" required placeholder="Ej: 1.000.000">
+                                                                <div class="form-text text-bagado-verde-primario fw-semibold small mt-1">
+                                                                    Si es "Compra Definitiva", el sistema sumará automáticamente la cláusula de $ {{ "{:,.0f}".format(j.clausula_rescision or 0).replace(',', '.') }} COP al valor final.
                                                                 </div>
                                                             </div>
                                                             <div class="mb-3">
@@ -355,14 +353,13 @@
                                                             </div>
                                                         </div>
                                                         <div class="modal-footer">
-                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                                            <button type="submit" class="btn btn-primary fw-bold">Enviar Oferta Oficial</button>
+                                                            <button type="button" class="btn btn-outline-dark" data-bs-dismiss="modal">Cancelar</button>
+                                                            <button type="submit" class="btn btn-primario fw-bold">Enviar Oferta Oficial</button>
                                                         </div>
                                                     </form>
                                                 </div>
                                             </div>
                                         </div>
-                                        
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -370,7 +367,7 @@
                         </table>
                     </div>
                 {% else %}
-                    <div class="alert alert-danger text-center">
+                    <div class="alert alert-danger text-center p-5 rounded">
                         <h5 class="fw-bold mb-0">El mercado de fichajes está cerrado.</h5>
                         <p class="mb-0 small">No se pueden realizar negociaciones hasta que el Administrador abra el mercado.</p>
                     </div>
@@ -382,15 +379,15 @@
         <div class="tab-pane fade" id="negociaciones-content" role="tabpanel">
             <div class="row">
                 <!-- Ofertas Recibidas -->
-                <div class="col-md-6">
-                    <div class="card border-0 shadow-sm p-3 h-100">
-                        <h5 class="fw-bold text-dark border-bottom pb-2">Ofertas Recibidas</h5>
+                <div class="col-md-6 mb-4">
+                    <div class="card-bagado p-4 h-100">
+                        <h5 class="fw-bold text-bagado-verde-primario border-bottom pb-2">Ofertas Recibidas</h5>
                         {% for oferta in ofertas_recibidas %}
-                            <div class="alert alert-light border shadow-sm mt-3">
-                                <h6 class="fw-bold text-primary">{{ oferta.equipo_destino.nombre }} quiere a {{ oferta.jugador.nombre }}</h6>
+                            <div class="card-bagado bg-light p-3 mt-3 shadow-none border">
+                                <h6 class="fw-bold text-dark">{{ oferta.equipo_destino.nombre }} quiere a {{ oferta.jugador.nombre }}</h6>
                                 <ul class="list-unstyled small mb-3">
                                     <li><strong>Tipo:</strong> {{ oferta.tipo }}</li>
-                                    <li><strong>Monto Ofertado:</strong> <span class="text-success fw-bold">$ {{ "{:,.0f}".format(oferta.monto or 0).replace(',', '.') }} COP</span></li>                                    {% if oferta.jugador_intercambio %}
+                                    <li><strong>Monto Ofertado:</strong> <span class="text-bagado-verde-primario fw-bold">$ {{ "{:,.0f}".format(oferta.monto or 0).replace(',', '.') }} COP</span></li>                                    {% if oferta.jugador_intercambio %}
                                     <li><strong>Intercambio:</strong> Te ofrecen a {{ oferta.jugador_intercambio.nombre }} ({{ oferta.jugador_intercambio.posicion }})</li>
                                     {% endif %}
                                     {% if oferta.mensaje_negociacion %}
@@ -399,18 +396,18 @@
                                     <li><strong>Estado actual:</strong> <span class="badge bg-warning text-dark">{{ oferta.estado }}</span></li>
                                 </ul>
                                 
-                                <!-- Botones de Acción solo si está Pendiente -->
                                 {% if oferta.estado == 'Pendiente' %}
                                 <div class="d-flex gap-2">
                                     <form method="POST" action="{{ url_for('delegado.responder_oferta', oferta_id=oferta.id) }}">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                         <input type="hidden" name="accion" value="aceptar">
-                                        <button type="submit" class="btn btn-sm btn-success fw-bold">Aceptar</button>
+                                        <button type="submit" class="btn btn-sm btn-primario fw-bold">Aceptar</button>
                                     </form>
                                     
-                                    <!-- Botón Renegociar (Abre Modal) -->
-                                    <button type="button" class="btn btn-sm btn-warning fw-bold" data-bs-toggle="modal" data-bs-target="#renegociarModal{{ oferta.id }}">Renegociar</button>
+                                    <button type="button" class="btn btn-sm btn-secundario fw-bold" data-bs-toggle="modal" data-bs-target="#renegociarModal{{ oferta.id }}">Renegociar</button>
 
                                     <form method="POST" action="{{ url_for('delegado.responder_oferta', oferta_id=oferta.id) }}">
+                                       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                         <input type="hidden" name="accion" value="rechazar">
                                         <button type="submit" class="btn btn-sm btn-outline-danger fw-bold">Rechazar</button>
                                     </form>
@@ -421,7 +418,8 @@
                                     <div class="modal-dialog">
                                         <div class="modal-content">
                                             <form method="POST" action="{{ url_for('delegado.responder_oferta', oferta_id=oferta.id) }}">
-                                                <div class="modal-header bg-warning text-dark"><h5 class="modal-title fw-bold">Renegociar Traspaso</h5></div>
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                                <div class="modal-header bg-bagado-amarillo-oro text-dark"><h5 class="modal-title fw-bold">Renegociar Traspaso</h5></div>
                                                 <div class="modal-body text-start">
                                                     <input type="hidden" name="accion" value="renegociar">
                                                     <label class="fw-bold">Exigir Nuevo Monto ($)</label>
@@ -429,7 +427,10 @@
                                                     <label class="fw-bold">Mensaje de Contraoferta</label>
                                                     <textarea name="nuevo_mensaje" class="form-control" rows="2" placeholder="Ej: No acepto menos de esto..."></textarea>
                                                 </div>
-                                                <div class="modal-footer"><button type="submit" class="btn btn-warning fw-bold">Enviar Contraoferta</button></div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-outline-dark" data-bs-dismiss="modal">Cancelar</button>
+                                                    <button type="submit" class="btn btn-secundario fw-bold">Enviar Contraoferta</button>
+                                                </div>
                                             </form>
                                         </div>
                                     </div>
@@ -437,58 +438,58 @@
                                 {% endif %}
                             </div>
                         {% else %}
-                            <p class="text-muted small mt-2">No has recibido ofertas de otros equipos.</p>
+                            <p class="text-muted small mt-3">No has recibido ofertas de otros equipos.</p>
                         {% endfor %}
                     </div>
                 </div>
                 
                 <!-- Ofertas Enviadas -->
-                <div class="col-md-6">
-                    <div class="card border-0 shadow-sm p-3 h-100">
-                        <h5 class="fw-bold text-dark border-bottom pb-2">Ofertas Enviadas</h5>
+                <div class="col-md-6 mb-4">
+                    <div class="card-bagado p-4 h-100">
+                        <h5 class="fw-bold text-bagado-verde-primario border-bottom pb-2">Ofertas Enviadas</h5>
                         {% for oferta in ofertas_enviadas %}
-                            <div class="alert alert-light border shadow-sm mt-3">
-                                <h6 class="fw-bold">Hiciste oferta por {{ oferta.jugador.nombre }}</h6>
+                            <div class="card-bagado bg-light p-3 mt-3 shadow-none border">
+                                <h6 class="fw-bold text-dark">Oferta por {{ oferta.jugador.nombre }}</h6>
                                 <ul class="list-unstyled small mb-2">
                                     <li><strong>Equipo Destino:</strong> {{ oferta.equipo_origen.nombre if oferta.equipo_origen else 'Agente Libre' }}</li>
                                     <li><strong>Tipo:</strong> {{ oferta.tipo }}</li>
-                                    <li><strong>Monto:</strong> <span class="text-success fw-bold">$ {{ "{:,.0f}".format(oferta.monto or 0).replace(',', '.') }} COP</span></li>                                    <li><strong>Estado:</strong> <span class="badge bg-info text-dark">{{ oferta.estado }}</span></li>
+                                    <li><strong>Monto:</strong> <span class="text-bagado-verde-primario fw-bold">$ {{ "{:,.0f}".format(oferta.monto or 0).replace(',', '.') }} COP</span></li>                                    <li><strong>Estado:</strong> <span class="badge bg-dark">{{ oferta.estado }}</span></li>
                                 </ul>
                                 
-                                <!-- NUEVO: Opciones para responder a la contraoferta -->
                                 {% if oferta.estado == 'Contraoferta' %}
-                                <div class="alert alert-warning p-2 mt-2">
-                                    <p class="small mb-2"><strong>¡Atención!</strong> El equipo dueño renegoció la oferta. Nuevo monto: <strong>$ {{ "{:,.0f}".format(oferta.monto or 0).replace(',', '.') }} COP</strong></p>
+                                <div class="alert alert-warning p-3 mt-3 border-0">
+                                    <p class="small mb-3"><strong>¡Atención!</strong> El equipo dueño renegoció la oferta. Nuevo monto exigido: <strong class="text-dark">$ {{ "{:,.0f}".format(oferta.monto or 0).replace(',', '.') }} COP</strong></p>
                                     <div class="d-flex gap-2">
                                         <form method="POST" action="{{ url_for('delegado.responder_oferta', oferta_id=oferta.id) }}">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                             <input type="hidden" name="accion" value="aceptar_contraoferta">
-                                            <button type="submit" class="btn btn-sm btn-success fw-bold">Aceptar Contraoferta</button>
+                                            <button type="submit" class="btn btn-sm btn-primario fw-bold">Aceptar Contraoferta</button>
                                         </form>
                                         <form method="POST" action="{{ url_for('delegado.responder_oferta', oferta_id=oferta.id) }}">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                             <input type="hidden" name="accion" value="rechazar">
                                             <button type="submit" class="btn btn-sm btn-outline-danger fw-bold">Rechazar</button>
                                         </form>
                                     </div>
                                 </div>
                                 {% endif %}
-
                             </div>
                         {% else %}
-                            <p class="text-muted small mt-2">No has enviado ninguna oferta aún.</p>
+                            <p class="text-muted small mt-3">No has enviado ninguna oferta aún.</p>
                         {% endfor %}
                     </div>
                 </div>
             </div>
         </div>
 
-
         <!-- Pestaña de Documentos (Delegado) -->
         <div class="tab-pane fade" id="docs-content" role="tabpanel">
-            <div class="card border-0 shadow-sm p-4">
-                <h4 class="mb-3 text-dark fw-bold">Centro de Documentos</h4>
+            <div class="card-bagado p-4 mb-4">
+                <h4 class="mb-3 text-bagado-verde-primario fw-bold">Centro de Documentos</h4>
                 <p class="text-muted small">Descarga los reglamentos del torneo o envía reportes en PDF a la administración.</p>
 
-                <form method="POST" action="{{ url_for('delegado.subir_documento') }}" enctype="multipart/form-data" class="mb-4 row g-3 bg-light p-3 border rounded">
+                <form method="POST" action="{{ url_for('delegado.subir_documento') }}" enctype="multipart/form-data" class="mb-5 row g-3 bg-light p-4 rounded border border-bagado-borde delegado-form-panel">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <div class="col-md-5">
                         <label class="form-label fw-bold small">Título del Reporte</label>
                         <input type="text" name="titulo" class="form-control" required placeholder="Ej: Planilla Médica - Mi Equipo">
@@ -498,23 +499,23 @@
                         <input type="file" name="archivo" class="form-control" accept=".pdf" required>
                     </div>
                     <div class="col-md-2 d-flex align-items-end">
-                        <button type="submit" class="btn btn-primary w-100 fw-bold">Enviar al Admin</button>
+                        <button type="submit" class="btn btn-primario w-100 fw-bold">Enviar</button>
                     </div>
                 </form>
 
-                <!-- Nueva sección para que el delegado gestione sus envíos -->
-                <h5 class="fw-bold mt-5 border-bottom pb-2">Mis Reportes Enviados al Administrador</h5>
+                <h5 class="fw-bold mt-2 border-bottom pb-2 text-dark">Mis Reportes Enviados</h5>
                 <ul class="list-group list-group-flush mb-4">
                     {% for doc in mis_documentos %}
-                    <li class="list-group-item d-flex justify-content-between align-items-center bg-light">
+                    <li class="list-group-item d-flex justify-content-between align-items-center bg-transparent px-0 py-3">
                         <span>
                             <strong class="text-dark">{{ doc.titulo }}</strong> <br>
                             <small class="text-muted">Enviado: {{ doc.fecha_subida.strftime('%Y-%m-%d') }}</small>
                         </span>
                         <div class="d-flex gap-2">
-                            <a href="{{ url_for('static', filename='uploads/' ~ doc.archivo) }}" target="_blank" class="btn btn-sm btn-outline-secondary fw-bold">Ver Archivo</a>
+                            <a href="{{ url_for('static', filename='uploads/' ~ doc.archivo) }}" target="_blank" class="btn btn-sm btn-outline-dark fw-bold">Ver Archivo</a>
                             
                             <form method="POST" action="{{ url_for('delegado.eliminar_documento', doc_id=doc.id) }}" onsubmit="return confirm('¿Seguro que deseas eliminar tu reporte? El administrador ya no podrá verlo.');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                 <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar Mi Reporte">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
                                     <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z"/>
@@ -525,7 +526,7 @@
                         </div>
                     </li>
                     {% else %}
-                    <li class="list-group-item text-muted bg-light">No has enviado ningún reporte al administrador aún.</li>
+                    <li class="list-group-item text-muted bg-transparent px-0">No has enviado ningún reporte al administrador aún.</li>
                     {% endfor %}
                 </ul>
             </div>
@@ -534,17 +535,32 @@
     </div>
 
     {% else %}
-    <div class="alert alert-warning text-center p-5 shadow-sm">
-        <h4 class="fw-bold">Sin Equipo Asignado</h4>
-        <p class="mb-0">Actualmente no tienes ningún equipo asignado. Comunícate con el Administrador.</p>
+    <div class="card-bagado text-center p-5">
+        <h4 class="fw-bold text-bagado-verde-primario">Sin Equipo Asignado</h4>
+        <p class="mb-0 text-muted">Actualmente no tienes ningún equipo asignado. Comunícate con el Administrador.</p>
     </div>
     {% endif %}
 
 </div>
 
-
+<!-- SCRIPT INTACTO -->
 <script>
 document.addEventListener("DOMContentLoaded", function() {
+    // Presentación responsive: asignar a cada celda el título de su columna.
+    document.querySelectorAll(".delegado-panel .table-responsive table").forEach(function(table) {
+        const labels = Array.from(table.querySelectorAll("thead th")).map(function(heading) {
+            return heading.textContent.replace(/\s+/g, " ").trim();
+        });
+
+        table.querySelectorAll("tbody tr").forEach(function(row) {
+            Array.from(row.cells).forEach(function(cell, index) {
+                if (cell.tagName === "TD" && !cell.hasAttribute("colspan")) {
+                    cell.setAttribute("data-label", labels[index] || "Detalle");
+                }
+            });
+        });
+    });
+
     
     // 1. Limpieza total de texto (ignora tildes, acentos y mayúsculas)
     const limpiarTexto = (texto) => {

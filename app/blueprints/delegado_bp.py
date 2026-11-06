@@ -17,11 +17,15 @@ def panel():
     
     # Obtener estado del mercado
     config = Configuracion.query.first()
+
+    # Obtener documentos publicados por el administrador
+    documentos_admin = DocumentoTorneo.query.filter_by(subido_por_rol='admin').all()
     
     jugadores = []
     mercado = []
     ofertas_recibidas = []
     ofertas_enviadas = []
+    mis_documentos = []
 
     if equipo:
         jugadores = Jugador.query.filter_by(equipo_id=equipo.id).all()
