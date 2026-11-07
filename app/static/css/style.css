@@ -335,6 +335,22 @@ table, .table, .table td, .table th, .table span, .table a, .table div {
     margin-bottom: 0;
 }
 
+/* Contenedor inteligente para homenajeados */
+.caja-homenajeado {
+    height: 280px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f8f9fa; /* Fondo gris claro para rellenar espacios vacíos */
+}
+
+.caja-homenajeado img {
+    max-height: 100%;
+    max-width: 100%;
+    object-fit: contain; /* Ajusta sin recortar absolutamente nada */
+}
+
 .admin-panel .table th,
 .admin-panel .table td {
     vertical-align: middle;
@@ -2120,4 +2136,26 @@ body .resultado-marcador {
     .team-detail-crest { width: 64px; height: 64px; }
     .bagado-view .bagado-page-title { font-size: 1.85rem; }
     .bagado-view .bagado-mobile-table td { grid-template-columns: minmax(88px, 35%) minmax(0, 1fr); gap: .45rem; }
+}
+
+/* Forzar mayúsculas automáticas en todos los títulos y encabezados clave */
+h1, h2, h3, h4, 
+.card-bagado-header, 
+.podium-category-name, 
+.navbar-brand {
+    text-transform: uppercase;
+}
+
+
+/* Carrusel con ajuste completo y fondo de marco */
+.carousel-inner .carousel-item {
+    height: 420px;
+    background-color: #111111; /* Fondo elegante para los espacios vacíos */
+}
+
+.carousel-inner .carousel-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain; /* Muestra la imagen entera sin recortar nada */
+    object-position: center;
 }

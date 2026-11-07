@@ -4,7 +4,7 @@ from werkzeug.utils import secure_filename
 from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from app.extensions import db
-from app.models import Usuario, Equipo, Configuracion, Traspaso, Jugador, Categoria, Partido, DocumentoTorneo, Torneo, Carrusel, Patrocinador
+from app.models import Usuario, Equipo, Homenajeado, Configuracion, Traspaso, Jugador, Categoria, Partido, DocumentoTorneo, Torneo, Carrusel, Patrocinador
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
@@ -56,6 +56,7 @@ def panel():
     documentos = DocumentoTorneo.query.filter_by(torneo_id=torneo_activo.id).order_by(DocumentoTorneo.fecha_subida.desc()).all()
     carrusel_imagenes = Carrusel.query.order_by(Carrusel.orden.asc()).all()
     patrocinadores = Patrocinador.query.all()
+    homenajeados=Homenajeado.query.all()
 
     return render_template('admin/paneladmin.html', 
                            usuarios=usuarios, 
@@ -67,8 +68,9 @@ def panel():
                            partidos=partidos,
                            documentos=documentos,
                            torneos=torneos,
-                           torneo_activo=torneo_activo,arrusel_imagenes=carrusel_imagenes,  # <-- AGREGAR ESTO
-                           patrocinadores=patrocinadores)
+                           torneo_activo=torneo_activo,carrusel_imagenes=carrusel_imagenes,  # <-- AGREGAR ESTO
+                           patrocinadores=patrocinadores,
+                           homenajeados=homenajeados)
 
 
 
@@ -130,6 +132,35 @@ def eliminar_equipo(id):
     return redirect(url_for('admin.panel'))
 
 
+@admin_bp.route('/homenajeado/crear', methods=['POST'])
+def crear_homenajeado():
+    torneo_activo = Torneo.query.filter_by(estado='Activo').first()
+
+    if session.get('user_rol') != 'admin': return redirect(url_for('main.index'))
+    archivo = request.files.get('foto')
+    if archivo and archivo.filename:
+        filename = secure_filename(f"homenaje_{archivo.filename}")
+        archivo.save(os.path.join('app/static/uploads', filename))
+        nuevo = Homenajeado(
+            nombre=request.form.get('nombre'),
+            motivo=request.form.get('motivo'),
+            foto=filename,
+            torneo_id=torneo_activo.id if torneo_activo else None
+        )
+        db.session.add(nuevo)
+        db.session.commit()
+        flash('Homenajeado agregado.', 'success')
+    return redirect(url_for('admin.panel'))
+
+@admin_bp.route('/homenajeado/eliminar/<int:id>', methods=['POST'])
+def eliminar_homenajeado(id):
+    if session.get('user_rol') != 'admin': return redirect(url_for('main.index'))
+    hom = Homenajeado.query.get_or_404(id)
+    db.session.delete(hom)
+    db.session.commit()
+    flash('Homenajeado eliminado.', 'info')
+    return redirect(url_for('admin.panel'))
+
 
 # NUEVA RUTA: Para que el admin pueda reasignar el equipo de un jugador
 @admin_bp.route('/reasignar-jugador/<int:jugador_id>', methods=['POST'])
@@ -190,11 +221,16 @@ def toggle_mercado():
         return redirect(url_for('main.index'))
         
     config = Configuracion.query.first()
-    if config:
-        # Invertimos el valor actual (Si es True pasa a False, y viceversa)
+    
+    # Si no existe la configuración, la creamos por primera vez y abrimos el mercado
+    if not config:
+        config = Configuracion(mercado_abierto=True)
+        db.session.add(config)
+        db.session.commit()
+        flash('Se configuró el mercado por primera vez y ahora está ABIERTO.', 'success')
+    else:
         config.mercado_abierto = not config.mercado_abierto
         db.session.commit()
-        
         estado = "ABIERTO" if config.mercado_abierto else "CERRADO"
         flash(f'El mercado de fichajes ahora está {estado}.', 'success')
         
@@ -742,4 +778,23 @@ def eliminar_patrocinador(id):
     pat = Patrocinador.query.get_or_404(id)
     db.session.delete(pat)
     db.session.commit()
+    return redirect(url_for('admin.panel'))
+
+
+@admin_bp.route('/usuario/cambiar-rol/<int:id>', methods=['POST'])
+def cambiar_rol(id):
+    if session.get('user_rol') != 'admin':
+        return redirect(url_for('main.index'))
+        
+    usuario = Usuario.query.get_or_404(id)
+    nuevo_rol = request.form.get('rol')
+    
+    # Evitar que el admin principal se quite a sí mismo el acceso por accidente
+    if usuario.id == session.get('user_id') and nuevo_rol != 'admin':
+        flash('No puedes quitarte el rol de administrador a ti mismo.', 'danger')
+        return redirect(url_for('admin.panel'))
+        
+    usuario.rol = nuevo_rol
+    db.session.commit()
+    flash(f'El rol de {usuario.nombres} ha sido actualizado a {nuevo_rol}.', 'success')
     return redirect(url_for('admin.panel'))

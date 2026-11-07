@@ -24,6 +24,7 @@ class Usuario(db.Model):
     email = db.Column(db.String(120), unique=True, index=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
     rol = db.Column(db.String(20), default='usuario', nullable=False)
+    foto_perfil = db.Column(db.String(255), nullable=True)
     
     equipo = db.relationship('Equipo', backref='delegado_asignado', uselist=False)
 
@@ -229,3 +230,13 @@ class PodioYeimi(db.Model):
     campeon = db.relationship('Equipo', foreign_keys=[campeon_id])
     subcampeon = db.relationship('Equipo', foreign_keys=[subcampeon_id])
     tercer_puesto = db.relationship('Equipo', foreign_keys=[tercer_puesto_id])
+
+
+
+class Homenajeado(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(100), nullable=False)
+    motivo = db.Column(db.Text, nullable=False)
+    foto = db.Column(db.String(200), nullable=False)
+    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
+    torneo_id = db.Column(db.Integer, db.ForeignKey('torneo.id'), nullable=True)

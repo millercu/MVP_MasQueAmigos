@@ -2,7 +2,7 @@ import os
 from werkzeug.utils import secure_filename
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from app.extensions import db
-from app.models import Usuario, Equipo, Jugador, Configuracion, Traspaso, DocumentoTorneo, Torneo
+from app.models import Usuario, Equipo, Jugador, Configuracion, Traspaso, DocumentoTorneo, Torneo, EstadisticaPartido
 
 delegado_bp = Blueprint('delegado', __name__)
 
@@ -260,14 +260,24 @@ def editar_jugador(jugador_id):
     
     return redirect(url_for('delegado.panel'))
 
-@delegado_bp.route('/eliminar-jugador/<int:jugador_id>', methods=['POST'])
+@delegado_bp.route('/jugador/eliminar/<int:jugador_id>', methods=['POST'])
 def eliminar_jugador(jugador_id):
-    if 'user_id' not in session:
-        return redirect(url_for('auth.login'))
+    if session.get('user_rol') != 'delegado':
+        return redirect(url_for('main.index'))
         
     jugador = Jugador.query.get_or_404(jugador_id)
+    
+    # 1. Eliminar las estadísticas asociadas al jugador en los partidos
+    EstadisticaPartido.query.filter_by(jugador_id=jugador.id).delete()
+    
+    # 2. Eliminar cualquier traspaso donde el jugador sea el fichaje o la moneda de cambio
+    Traspaso.query.filter((Traspaso.jugador_id == jugador.id) | (Traspaso.jugador_intercambio_id == jugador.id)).delete()
+    
+    # 3. Ahora sí, eliminar al jugador de forma segura
     db.session.delete(jugador)
     db.session.commit()
+    
+    flash('Jugador eliminado correctamente de la plantilla.', 'success')
     return redirect(url_for('delegado.panel'))
 
 

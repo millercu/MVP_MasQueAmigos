@@ -27,6 +27,9 @@ def create_app(config_class=Config):
     from app.blueprints.yeimi_bp import yeimi_bp
     from app.blueprints.fifa_bp import fifa_bp
     from app.blueprints.main_bp import main_bp
+    from app.models import Patrocinador
+    from app.models import Patrocinador, Usuario
+    from flask import session
 
     from flask_talisman import Talisman
 
@@ -59,6 +62,19 @@ def create_app(config_class=Config):
     @app.errorhandler(403)
     def acceso_prohibido(e):
         return render_template('errores/403.html'), 403
+
+    @app.context_processor
+    def inject_patrocinadores():
+        patrocinadores = Patrocinador.query.all()
+        return dict(patrocinadores=patrocinadores)
+
+    @app.context_processor
+    def inyectar_datos_globales():
+        patrocinadores = Patrocinador.query.all()
+        usuario_actual = None
+        if 'user_id' in session:
+            usuario_actual = Usuario.query.get(session['user_id'])
+        return dict(patrocinadores=patrocinadores, usuario_actual=usuario_actual)
 
     csrf.init_app(app)
     Talisman(app, content_security_policy=None)

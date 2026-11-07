@@ -86,6 +86,10 @@ document.addEventListener("DOMContentLoaded", function () {
     <li class="nav-item" role="presentation">
         <button class="nav-link fw-semibold" id="patrocinadores-tab" data-bs-toggle="tab" data-bs-target="#patrocinadores-content" type="button" role="tab">Patrocinadores</button>
     </li>
+
+    <li class="nav-item" role="presentation">
+        <button class="nav-link fw-semibold" id="homenajes-tab" data-bs-toggle="tab" data-bs-target="#homenajes-content" type="button" role="tab">Homenajeados</button>
+    </li>
 </ul>
 
     <!-- Contenido de las pestañas -->
@@ -188,13 +192,15 @@ document.addEventListener("DOMContentLoaded", function () {
                                 <td>{{ u.email }}</td>
                                 <td>{{ u.telefono }}</td>
                                 <td>
-                                    {% if u.rol == 'admin' %}
-                                        <span class="badge bg-danger">Administrador</span>
-                                    {% elif u.rol == 'delegado' %}
-                                        <span class="badge bg-success">Delegado</span>
-                                    {% else %}
-                                        <span class="badge bg-secondary">Usuario General</span>
-                                    {% endif %}
+                                    <form method="POST" action="{{ url_for('admin.cambiar_rol', id=u.id) }}" class="d-flex align-items-center gap-2">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        <select name="rol" class="form-select form-select-sm shadow-none border-secondary w-auto">
+                                            <option value="usuario" {% if u.rol == 'usuario' %}selected{% endif %}>Usuario General</option>
+                                            <option value="delegado" {% if u.rol == 'delegado' %}selected{% endif %}>Delegado</option>
+                                            <option value="admin" {% if u.rol == 'admin' %}selected{% endif %}>Administrador</option>
+                                        </select>
+                                        <button type="submit" class="btn btn-sm btn-primario fw-bold flex-shrink-0">Aplicar</button>
+                                    </form>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -291,7 +297,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                 {% endif %}
 
                                 <!-- Botón para eliminar el torneo por completo -->
-                                <form method="POST" action="{{ url_for('admin.eliminar_torneo', torneo_id=t.id) }}" onsubmit="return confirm('¿Estás seguro de eliminar este torneo? Se borrarán en cascada todas sus categorías, equipos y partidos asociados.');">
+                                <form method="POST" action="{{ url_for('admin.eliminar_torneo', torneo_id=t.id) }}" method="POST" class="d-inline form-eliminar">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                     <button type="submit" class="btn btn-sm btn-danger fw-bold">Eliminar</button>
                                 </form>
@@ -375,6 +381,67 @@ document.addEventListener("DOMContentLoaded", function () {
                     </div>
                 </div>
             </div>
+
+
+
+<!-- Pestaña Homenajeados -->
+<div class="tab-pane fade" id="homenajes-content" role="tabpanel">
+    <div class="card p-4 mb-4 shadow-sm border-0">
+        <h4 class="mb-3 fw-bold text-success">Gestión de Homenajeados</h4>
+        <p class="text-muted small">Registra a las personas ilustres que recibirán reconocimiento en esta edición.</p>
+        
+        <form action="{{ url_for('admin.crear_homenajeado') }}" method="POST" enctype="multipart/form-data" class="row g-3 mb-5 bg-light p-4 rounded border border-secondary">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div class="col-md-6">
+                <label class="form-label fw-bold small">Nombre Completo</label>
+                <input type="text" name="nombre" class="form-control" placeholder="Nombre del personaje" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-bold small">Fotografía</label>
+                <input type="file" name="foto" class="form-control" accept="image/*" required>
+            </div>
+            <div class="col-md-12">
+                <label class="form-label fw-bold small">Motivo del Homenaje</label>
+                <textarea name="motivo" class="form-control" rows="3" placeholder="Describe brevemente su aporte a la comunidad..." required></textarea>
+            </div>
+            <div class="col-md-12 text-end mt-3">
+                <button type="submit" class="btn btn-success fw-bold px-5">Publicar Homenajeado</button>
+            </div>
+        </form>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Fotografía</th>
+                        <th class="text-start">Nombre</th>
+                        <th class="text-start">Motivo</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for hom in homenajeados %}
+                    <tr>
+                        <td>
+                            <img src="{{ url_for('static', filename='uploads/' ~ hom.foto) }}" alt="Foto Homenajeado" class="rounded-circle shadow-sm" style="width: 75px; height: 75px; object-fit: cover; object-position: top; border: 2px solid #ddd;">
+                        </td>
+                        <td class="text-start fw-bold">{{ hom.nombre }}</td>
+                        <td class="text-start small text-muted text-break" style="max-width: 300px;">{{ hom.motivo }}</td>
+                        <td>
+                            <form action="{{ url_for('admin.eliminar_homenajeado', id=hom.id) }}" method="POST" method="POST" class="d-inline form-eliminar">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                <button type="submit" class="btn btn-sm btn-danger fw-bold">Eliminar</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="4" class="text-center text-muted py-4">No hay homenajeados registrados actualmente.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
 
             <!-- Pestaña 5: Control Global de Jugadores -->
@@ -467,28 +534,27 @@ document.addEventListener("DOMContentLoaded", function () {
                             </thead>
                             <!-- En la tabla de Categorías -->
                             <tbody>
-                                {% for cat in categorias %}
-                                <tr>
-                                    <!-- Reemplaza {{ cat.id }} por {{ loop.index }} -->
-                                    <td class="fw-bold">{{ loop.index }}</td> 
-                                    <td>
-                                        <form action="{{ url_for('admin.editar_categoria', id=cat.id) }}" method="POST" class="d-flex gap-2">
-                                           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                            <input type="text" name="nombre" value="{{ cat.nombre }}" class="form-control form-control-sm" required>
-                                            <button type="submit" class="btn btn-sm btn-primario">Guardar</button>
-                                        </form>
-                                    </td>
-                                    <td>
-                                        <form action="{{ url_for('admin.eliminar_categoria', id=cat.id) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Eliminar categoría? Los equipos asociados quedarán sin categoría.');">
-                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                            <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
-                                        </form>
-                                    </td>
-                                </tr>
-                                {% else %}
-                                <tr><td colspan="3" class="text-center text-muted">No hay categorías registradas.</td></tr>
-                                {% endfor %}
-                            </tbody>
+    {% for cat in categorias %}
+    <tr>
+        <td class="fw-bold align-middle">{{ loop.index }}</td> 
+        <td class="align-middle">
+            <form action="{{ url_for('admin.editar_categoria', id=cat.id) }}" method="POST" class="d-flex flex-column flex-md-row gap-2 mb-0">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <input type="text" name="nombre" value="{{ cat.nombre }}" class="form-control form-control-sm border-secondary shadow-none" style="min-width: 150px;" required>
+                <button type="submit" class="btn btn-sm btn-success fw-bold flex-shrink-0">Guardar</button>
+            </form>
+        </td>
+        <td class="align-middle">
+            <form action="{{ url_for('admin.eliminar_categoria', id=cat.id) }}" method="POST" class="d-inline form-eliminar mb-0">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button type="submit" class="btn btn-sm btn-danger fw-bold">Eliminar</button>
+            </form>
+        </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="3" class="text-center text-muted">No hay categorías registradas.</td></tr>
+    {% endfor %}
+</tbody>
                         </table>
                     </div>
                 </div>
@@ -551,7 +617,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                         <span class="badge bg-secondary">{{ eq.categoria.nombre if eq.categoria else 'Sin Categoría' }}</span>
                                     </td>
                                     <td>
-                                        <form action="{{ url_for('admin.eliminar_equipo', id=eq.id) }}" method="POST" class="d-inline" onsubmit="return confirm('¿Estás seguro de eliminar este equipo? Se borrarán sus jugadores asociados.');">
+                                        <form action="{{ url_for('admin.eliminar_equipo', id=eq.id) }}" method="POST" class="d-inline" method="POST" class="d-inline form-eliminar">
                                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                             <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
                                         </form>
@@ -567,236 +633,247 @@ document.addEventListener("DOMContentLoaded", function () {
             </div>
 
 
-          <!-- Pestaña: Fixture y Sorteo -->
+<!-- Pestaña: Fixture y Sorteo -->
 <div class="tab-pane fade" id="fixture-content" role="tabpanel">
     <div class="card-bagado p-4 mb-4">
         <h4 class="mb-3 text-bagado-verde-primario fw-bold">Generación de Fixture y Sorteo</h4>
         <p class="text-muted small">Realiza el sorteo automático de los cruces por categoría. El sistema organizará las llaves dependiendo de la cantidad de equipos.</p>
 
         {% for cat in categorias %}
-        <div class="alert alert-light border shadow-sm mb-4 admin-category-card">
-            <h5 class="fw-bold text-bagado-verde-primario border-bottom pb-2">{{ cat.nombre }} ({{ cat.equipos|length }} Equipos inscritos)</h5>
+            <!-- Filtro para ocultar Yeimi y eSports del sorteo de fútbol -->
+            {% if 'yeimi' not in cat.nombre|lower and 'easports' not in cat.nombre|lower and 'e-sports' not in cat.nombre|lower %}
             
-            {% if cat.equipos|length == 4 %}
-                <p class="small text-muted mb-2"><strong>Formato detectado:</strong> Semifinal Directa. El sistema sorteará automáticamente las dos llaves, conectándolas con la Final y Tercer Puesto.</p>
-                <form method="POST" action="{{ url_for('admin.generar_fixture', categoria_id=cat.id) }}">
-                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                    <button type="submit" class="btn btn-success fw-bold">Realizar Sorteo Semifinales</button>
-                </form>
+            <div class="alert alert-light border shadow-sm mb-4 admin-category-card">
+                <h5 class="fw-bold text-bagado-verde-primario border-bottom pb-2">{{ cat.nombre }} ({{ cat.equipos|length }} Equipos inscritos)</h5>
+                
+                <!-- Lógica de cantidad de equipos -->
+                {% if cat.equipos|length == 4 %}
+                    <p class="small text-muted mb-2"><strong>Formato detectado:</strong> Semifinal Directa. El sistema sorteará automáticamente las dos llaves, conectándolas con la Final y Tercer Puesto.</p>
+                    <form method="POST" action="{{ url_for('admin.generar_fixture', categoria_id=cat.id) }}">
+                       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <button type="submit" class="btn btn-success fw-bold">Realizar Sorteo Semifinales</button>
+                    </form>
 
-            {% elif cat.equipos|length == 5 %}
-                <p class="small text-muted mb-2"><strong>Formato detectado:</strong> Repechaje + Semifinal. Selecciona los dos equipos (4to y 5to) que jugarán el repechaje inicial. El sistema sorteará a los 3 restantes.</p>
-                <form method="POST" action="{{ url_for('admin.generar_fixture', categoria_id=cat.id) }}" class="row g-2 align-items-end">
-                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                    <div class="col-md-4">
-                        <label class="form-label small fw-bold">Equipo en Repechaje 1</label>
-                        <select name="equipo_4_id" class="form-select" required>
-                            <option value="">Seleccionar...</option>
-                            {% for eq in cat.equipos %}
-                                <option value="{{ eq.id }}">{{ eq.nombre }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label small fw-bold">Equipo en Repechaje 2</label>
-                        <select name="equipo_5_id" class="form-select" required>
-                            <option value="">Seleccionar...</option>
-                            {% for eq in cat.equipos %}
-                                <option value="{{ eq.id }}">{{ eq.nombre }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <button type="submit" class="btn btn-secundario fw-bold w-100">Sortear y Generar Llaves</button>
-                    </div>
-                </form>
-            {% else %}
-                <p class="text-danger small mb-0">Para generar el fixture se requieren exactamente <strong>4 equipos</strong> (Femenino) o <strong>5 equipos</strong> (Masculino). Actualmente hay {{ cat.equipos|length }} equipos en esta categoría.</p>
-            {% endif %}
-
-            <!-- BOTÓN PARA ELIMINAR EL SORTEO DE ESTA CATEGORÍA ESPECÍFICA -->
-            <div class="mt-3 pt-2 border-top">
-                <form method="POST" action="{{ url_for('admin.eliminar_fixture', categoria_id=cat.id) }}" onsubmit="return confirm('¿Seguro que deseas eliminar todo el sorteo y partidos de esta categoría?');">
-                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                    <button type="submit" class="btn btn-sm btn-outline-danger fw-bold"> Eliminar Sorteo Actual de {{ cat.nombre }}</button>
-                </form>
-            </div>
-        </div>
-        {% else %}
-            <p class="text-muted text-center py-3">No hay categorías registradas para realizar el sorteo.</p>
-        {% endfor %}
-    </div>
-
-
-            <hr class="my-5 border-2 border-success">
-            <h4 class="mb-4 text-dark fw-bold">Calendario y Programación Oficial</h4>
-
-            {% for cat in categorias %}
-                <!-- EXTRAEMOS LOS PARTIDOS DE ESTA CATEGORÍA EN UNA LISTA -->
-                {% set partidos_categoria = [] %}
-                {% for p in partidos %}
-                    {% if p.categoria_id == cat.id %}
-                        {% set _ = partidos_categoria.append(p) %}
-                    {% endif %}
-                {% endfor %}
-
-                <!-- SI HAY PARTIDOS, MOSTRAMOS LA TABLA -->
-                {% if partidos_categoria %}
-                <div class="card-bagado mb-5 admin-fixture-card">
-                    <div class="card-bagado-header fw-bold fs-5 px-3 py-2">
-                        Fixture: {{ cat.nombre }}
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-striped align-middle mb-0">
-                                <thead class="table-dark">
-                                    <tr>
-                                        <th>Fase</th>
-                                        <th class="text-end">Local</th>
-                                        <th class="text-center">VS</th>
-                                        <th>Visitante</th>
-                                        <th class="text-center">Fecha y Hora</th>
-                                        <th>Cancha</th>
-                                        <th>Acción</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for p in partidos_categoria %}
-                                        <tr>
-                                            <td><span class="badge bg-dark">{{ p.fase }}</span></td>
-                                            <td class="fw-bold text-end">{{ p.equipo_local.nombre if p.equipo_local else p.info_local }}</td>
-                                            <td class="text-center fw-bold text-muted">VS</td>
-                                            <td class="fw-bold">{{ p.equipo_visitante.nombre if p.equipo_visitante else p.info_visitante }}</td>
-                                            
-                                            <!-- Columna de Estado / Marcador / Fecha -->
-                                            <td class="text-center">
-                                                {% if p.estado == 'Jugado' %}
-                                                    <span class="badge bg-success fs-6">Finalizado ({{ p.goles_local }} - {{ p.goles_visitante }})</span>
-                                                    {% if p.penales_local is not none and p.penales_visitante is not none %}
-                                                        <br><small class="text-muted">Penales: ({{ p.penales_local }} - {{ p.penales_visitante }})</small>
-                                                    {% endif %}
-                                                {% elif p.fecha and p.hora %}
-                                                    <span class="badge bg-success">{{ p.fecha }} | {{ p.hora }}</span>
-                                                {% else %}
-                                                    <span class="badge bg-danger">Sin programar</span>
-                                                {% endif %}
-                                            </td>
-
-                                            <td>{{ p.cancha or '-' }}</td>
-                                            
-                                            <!-- Columna de Acciones Limpia -->
-                                            <td>
-                                                <!-- Botón de programar fecha y hora -->
-                                                <button class="btn btn-sm btn-outline-bagado fw-bold" data-bs-toggle="modal" data-bs-target="#programarModal{{ p.id }}">
-                                                    Programar
-                                                </button>
-
-                                                <!-- Botón inteligente de Acta Arbitral / Editar Acta -->
-                                                {% if p.equipo_local and p.equipo_visitante and p.fecha and p.hora %}
-                                                    <a href="{{ url_for('admin.acta_partido', partido_id=p.id) }}" class="btn btn-sm {% if p.estado == 'Jugado' %}btn-secundario{% else %}btn-success{% endif %} fw-bold ms-1" title="Registrar o Editar Estadísticas">
-                                                        {% if p.estado == 'Jugado' %}Editar Acta{% else %}Acta Arbitral{% endif %}
-                                                    </a>
-                                                {% endif %}
-                                            </td>
-                                        </tr>
-
-                                        <!-- Modal de Programación -->
-                                        <div class="modal fade" id="programarModal{{ p.id }}" tabindex="-1">
-                                            <div class="modal-dialog">
-                                                <div class="modal-content text-start">
-                                                    <form action="{{ url_for('admin.programar_partido', partido_id=p.id) }}" method="POST">
-                                                       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                                                        <div class="modal-header bg-dark text-white">
-                                                            <h5 class="modal-title fw-bold">Asignar Fecha y Hora</h5>
-                                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                                                        </div>
-                                                        <div class="modal-body">
-                                                            <div class="alert alert-light border text-center mb-3">
-                                                                <strong>{{ p.equipo_local.nombre if p.equipo_local else p.info_local }}</strong> 
-                                                                <br>VS<br> 
-                                                                <strong>{{ p.equipo_visitante.nombre if p.equipo_visitante else p.info_visitante }}</strong>
-                                                            </div>
-                                                            <div class="mb-3">
-                                                                <label class="form-label fw-bold small">Fecha del Partido</label>
-                                                                <input type="date" name="fecha" class="form-control" value="{{ p.fecha or '' }}" required>
-                                                            </div>
-                                                            <div class="mb-3">
-                                                                <label class="form-label fw-bold small">Hora de Inicio</label>
-                                                                <input type="time" name="hora" class="form-control" value="{{ p.hora or '' }}" required>
-                                                            </div>
-                                                            <div class="mb-3">
-                                                                <label class="form-label fw-bold small">Cancha o Sede</label>
-                                                                <input type="text" name="cancha" class="form-control" placeholder="Ej: Cancha Sintética Norte" value="{{ p.cancha or '' }}" required>
-                                                            </div>
-                                                        </div>
-                                                        <div class="modal-footer">
-                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                                            <button type="submit" class="btn btn-primario fw-bold">Guardar Cambios</button>
-                                                        </div>
-                                                    </form>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
+                {% elif cat.equipos|length == 5 %}
+                    <p class="small text-muted mb-2"><strong>Formato detectado:</strong> Repechaje + Semifinal. Selecciona los dos equipos (4to y 5to) que jugarán el repechaje inicial. El sistema sorteará a los 3 restantes.</p>
+                    <form method="POST" action="{{ url_for('admin.generar_fixture', categoria_id=cat.id) }}" class="row g-2 align-items-end">
+                       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Equipo en Repechaje 1</label>
+                            <select name="equipo_4_id" class="form-select" required>
+                                <option value="">Seleccionar...</option>
+                                {% for eq in cat.equipos %}
+                                    <option value="{{ eq.id }}">{{ eq.nombre }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Equipo en Repechaje 2</label>
+                            <select name="equipo_5_id" class="form-select" required>
+                                <option value="">Seleccionar...</option>
+                                {% for eq in cat.equipos %}
+                                    <option value="{{ eq.id }}">{{ eq.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-secondary fw-bold w-100">Sortear y Generar Llaves</button>
+                        </div>
+                    </form>
+
+                {% elif cat.equipos|length == 0 %}
+                    <p class="text-muted small mb-0">No hay equipos asignados a esta categoría todavía.</p>
+
+                {% else %}
+                    <div class="alert alert-danger p-2 mb-0 border-0 rounded">
+                        <p class="small fw-bold mb-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-circle-fill me-1" viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg>
+                            Atención: Tienes {{ cat.equipos|length }} equipo(s) en esta categoría. El sistema automático requiere exactamente 4 o 5 equipos para realizar el sorteo.
+                        </p>
                     </div>
-                </div>
                 {% endif %}
 
+                <!-- BOTÓN PARA ELIMINAR EL SORTEO DE ESTA CATEGORÍA ESPECÍFICA -->
+                <div class="mt-3 pt-2 border-top">
+                    <form method="POST" action="{{ url_for('admin.eliminar_fixture', categoria_id=cat.id) }}" method="POST" class="d-inline form-eliminar">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <button type="submit" class="btn btn-sm btn-outline-danger fw-bold"> Eliminar Sorteo Actual de {{ cat.nombre }}</button>
+                    </form>
+                </div>
+            </div> <!-- Cierre del div.admin-category-card -->
 
-                <div class="row text-center mt-4">
-    {% set final = partidos_categoria | selectattr('fase', 'equalto', 'Final') | list %}
-    {% set tercero = partidos_categoria | selectattr('fase', 'equalto', 'Tercer Puesto') | list %}
-    
-    {% if final and final[0].estado == 'Jugado' %}
-        <div class="col-12 mt-3"><h5 class="fw-bold text-success">Podio Oficial: {{ cat.nombre }}</h5></div>
-        <div class="col-md-4 order-2">
-            <div class="p-3 bg-light border border-warning rounded shadow-sm">
-                <strong class="d-block mt-2">Campeón</strong>
-                <span class="text-muted">
-                    {% if final[0].goles_local > final[0].goles_visitante or (final[0].penales_local and final[0].penales_local > final[0].penales_visitante) %}
-                        {{ final[0].equipo_local.nombre }}
-                    {% else %}
-                        {{ final[0].equipo_visitante.nombre }}
-                    {% endif %}
-                </span>
+            {% endif %} <!-- Cierre del filtro IF Yeimi/eSports -->
+        
+        {% else %} <!-- Este else pertenece al for loop de categorias -->
+            <p class="text-muted text-center py-3">No hay categorías registradas para realizar el sorteo.</p>
+        {% endfor %}
+    </div> <!-- Cierre del primer card-bagado -->
+
+    <hr class="my-5 border-2 border-success">
+    <h4 class="mb-4 text-dark fw-bold">Calendario y Programación Oficial</h4>
+
+    {% for cat in categorias %}
+        <!-- EXTRAEMOS LOS PARTIDOS DE ESTA CATEGORÍA EN UNA LISTA -->
+        {% set partidos_categoria = [] %}
+        {% for p in partidos %}
+            {% if p.categoria_id == cat.id %}
+                {% set _ = partidos_categoria.append(p) %}
+            {% endif %}
+        {% endfor %}
+
+        <!-- SI HAY PARTIDOS, MOSTRAMOS LA TABLA -->
+        {% if partidos_categoria %}
+        <div class="card-bagado mb-5 admin-fixture-card">
+            <div class="card-bagado-header fw-bold fs-5 px-3 py-2">
+                Fixture: {{ cat.nombre }}
             </div>
-        </div>
-        <div class="col-md-4 order-1 mt-4">
-            <div class="p-3 bg-light border border-secondary rounded shadow-sm">
-                <strong class="d-block mt-2">Subcampeón</strong>
-                <span class="text-muted">
-                    {% if final[0].goles_local < final[0].goles_visitante or (final[0].penales_local and final[0].penales_local < final[0].penales_visitante) %}
-                        {{ final[0].equipo_local.nombre }}
-                    {% else %}
-                        {{ final[0].equipo_visitante.nombre }}
-                    {% endif %}
-                </span>
-            </div>
-        </div>
-        {% if tercero and tercero[0].estado == 'Jugado' %}
-        <div class="col-md-4 order-3 mt-4">
-            <div class="p-3 bg-light border border-dark opacity-75 rounded shadow-sm">
-                <h2 class="mb-0">🥉</h2>
-                <strong class="d-block mt-2">Tercer Puesto</strong>
-                <span class="text-muted">
-                    {% if tercero[0].goles_local > tercero[0].goles_visitante or (tercero[0].penales_local and tercero[0].penales_local > tercero[0].penales_visitante) %}
-                        {{ tercero[0].equipo_local.nombre }}
-                    {% else %}
-                        {{ tercero[0].equipo_visitante.nombre }}
-                    {% endif %}
-                </span>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-striped align-middle mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Fase</th>
+                                <th class="text-end">Local</th>
+                                <th class="text-center">VS</th>
+                                <th>Visitante</th>
+                                <th class="text-center">Fecha y Hora</th>
+                                <th>Cancha</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in partidos_categoria %}
+                                <tr>
+                                    <td><span class="badge bg-dark">{{ p.fase }}</span></td>
+                                    <td class="fw-bold text-end">{{ p.equipo_local.nombre if p.equipo_local else p.info_local }}</td>
+                                    <td class="text-center fw-bold text-muted">VS</td>
+                                    <td class="fw-bold">{{ p.equipo_visitante.nombre if p.equipo_visitante else p.info_visitante }}</td>
+                                    
+                                    <!-- Columna de Estado / Marcador / Fecha -->
+                                    <td class="text-center">
+                                        {% if p.estado == 'Jugado' %}
+                                            <span class="badge bg-success fs-6">Finalizado ({{ p.goles_local }} - {{ p.goles_visitante }})</span>
+                                            {% if p.penales_local is not none and p.penales_visitante is not none %}
+                                                <br><small class="text-muted">Penales: ({{ p.penales_local }} - {{ p.penales_visitante }})</small>
+                                            {% endif %}
+                                        {% elif p.fecha and p.hora %}
+                                            <span class="badge bg-success">{{ p.fecha }} | {{ p.hora }}</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Sin programar</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td>{{ p.cancha or '-' }}</td>
+                                    
+                                    <!-- Columna de Acciones -->
+                                    <td>
+                                        <!-- Botón de programar fecha y hora -->
+                                        <button class="btn btn-sm btn-outline-dark fw-bold" data-bs-toggle="modal" data-bs-target="#programarModal{{ p.id }}">
+                                            Programar
+                                        </button>
+
+                                        <!-- Botón inteligente de Acta Arbitral / Editar Acta -->
+                                        {% if p.equipo_local and p.equipo_visitante and p.fecha and p.hora %}
+                                            <a href="{{ url_for('admin.acta_partido', partido_id=p.id) }}" class="btn btn-sm {% if p.estado == 'Jugado' %}btn-secondary{% else %}btn-success{% endif %} fw-bold ms-1" title="Registrar o Editar Estadísticas">
+                                                {% if p.estado == 'Jugado' %}Editar Acta{% else %}Acta Arbitral{% endif %}
+                                            </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+
+                                <!-- Modal de Programación -->
+                                <div class="modal fade" id="programarModal{{ p.id }}" tabindex="-1">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content text-start">
+                                            <form action="{{ url_for('admin.programar_partido', partido_id=p.id) }}" method="POST">
+                                               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                                <div class="modal-header bg-dark text-white">
+                                                    <h5 class="modal-title fw-bold">Asignar Fecha y Hora</h5>
+                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <div class="alert alert-light border text-center mb-3">
+                                                        <strong>{{ p.equipo_local.nombre if p.equipo_local else p.info_local }}</strong> 
+                                                        <br>VS<br> 
+                                                        <strong>{{ p.equipo_visitante.nombre if p.equipo_visitante else p.info_visitante }}</strong>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-bold small">Fecha del Partido</label>
+                                                        <input type="date" name="fecha" class="form-control" value="{{ p.fecha or '' }}" required>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-bold small">Hora de Inicio</label>
+                                                        <input type="time" name="hora" class="form-control" value="{{ p.hora or '' }}" required>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label fw-bold small">Cancha o Sede</label>
+                                                        <input type="text" name="cancha" class="form-control" placeholder="Ej: Cancha Sintética Norte" value="{{ p.cancha or '' }}" required>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                    <button type="submit" class="btn btn-primary fw-bold">Guardar Cambios</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
         {% endif %}
-    {% endif %}
-</div>
 
-
-            {% endfor %}
+        <div class="row text-center mt-4">
+            {% set final = partidos_categoria | selectattr('fase', 'equalto', 'Final') | list %}
+            {% set tercero = partidos_categoria | selectattr('fase', 'equalto', 'Tercer Puesto') | list %}
+            
+            {% if final and final[0].estado == 'Jugado' %}
+                <div class="col-12 mt-3"><h5 class="fw-bold text-success">Podio Oficial: {{ cat.nombre }}</h5></div>
+                <div class="col-md-4 order-2">
+                    <div class="p-3 bg-light border border-warning rounded shadow-sm">
+                        <strong class="d-block mt-2">Campeón</strong>
+                        <span class="text-muted">
+                            {% if final[0].goles_local > final[0].goles_visitante or (final[0].penales_local and final[0].penales_local > final[0].penales_visitante) %}
+                                {{ final[0].equipo_local.nombre }}
+                            {% else %}
+                                {{ final[0].equipo_visitante.nombre }}
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+                <div class="col-md-4 order-1 mt-4">
+                    <div class="p-3 bg-light border border-secondary rounded shadow-sm">
+                        <strong class="d-block mt-2">Subcampeón</strong>
+                        <span class="text-muted">
+                            {% if final[0].goles_local < final[0].goles_visitante or (final[0].penales_local and final[0].penales_local < final[0].penales_visitante) %}
+                                {{ final[0].equipo_local.nombre }}
+                            {% else %}
+                                {{ final[0].equipo_visitante.nombre }}
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+                {% if tercero and tercero[0].estado == 'Jugado' %}
+                <div class="col-md-4 order-3 mt-4">
+                    <div class="p-3 bg-light border border-dark opacity-75 rounded shadow-sm">
+                        <strong class="d-block mt-2">Tercer Puesto</strong>
+                        <span class="text-muted">
+                            {% if tercero[0].goles_local > tercero[0].goles_visitante or (tercero[0].penales_local and tercero[0].penales_local > tercero[0].penales_visitante) %}
+                                {{ tercero[0].equipo_local.nombre }}
+                            {% else %}
+                                {{ tercero[0].equipo_visitante.nombre }}
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+                {% endif %}
+            {% endif %}
         </div>
+    {% endfor %}
+</div> <!-- CIERRE DEFINITIVO DEL TAB-PANE DE FIXTURE -->
 
 
         <!-- Pestaña de Documentos (Admin) -->
@@ -847,7 +924,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                 <div class="d-flex gap-2">
                                     <a href="{{ url_for('static', filename='uploads/' ~ doc.archivo) }}" target="_blank" class="btn btn-sm btn-outline-bagado fw-bold">Ver / Descargar</a>
                                     
-                                    <form method="POST" action="{{ url_for('admin.eliminar_documento', doc_id=doc.id) }}" onsubmit="return confirm('¿Seguro que deseas eliminar este documento de forma permanente?');">
+                                    <form method="POST" action="{{ url_for('admin.eliminar_documento', doc_id=doc.id) }}" method="POST" class="d-inline form-eliminar">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                         <button type="submit" class="btn btn-sm btn-danger" title="Eliminar Documento">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
@@ -899,7 +976,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         <td><img src="{{ url_for('static', filename='uploads/' ~ img.imagen) }}" alt="Carrusel" class="escudo-md rounded"></td>
                         <td class="text-muted small">{{ img.imagen }}</td>
                         <td>
-                            <form action="{{ url_for('admin.eliminar_carrusel', id=img.id) }}" method="POST">
+                            <form action="{{ url_for('admin.eliminar_carrusel', id=img.id) }}" method="POST" class="d-inline form-eliminar">
                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                 <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
                             </form>
@@ -950,7 +1027,8 @@ document.addEventListener("DOMContentLoaded", function () {
                         <td class="fw-bold">{{ pat.nombre }}</td>
                         <td><a href="{{ pat.enlace }}" target="_blank" class="text-bagado-verde-primario small">{{ pat.enlace }}</a></td>
                         <td>
-                            <form action="{{ url_for('admin.eliminar_patrocinador', id=pat.id) }}" method="POST">
+                            <form action="{{ url_for('admin.eliminar_patrocinador', id=pat.id) }}" method="POST" class="d-inline form-eliminar">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                 <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
                             </form>
                         </td>

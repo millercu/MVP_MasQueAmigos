@@ -29,6 +29,7 @@
             </header>
             <div class="podium-category-body">
                 <form method="POST" action="{{ url_for('yeimi.guardar_podio', categoria_id=cat.id) }}" class="yeimi-podium-form">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <div class="yeimi-fields-grid">
                         <div class="podium-field">
                             <label class="form-label yeimi-position-label yeimi-position-label--gold" for="campeon-{{ cat.id }}">

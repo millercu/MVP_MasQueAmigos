@@ -33,16 +33,16 @@
     </form>
 </div>
 
-<!-- 1. Carrusel de Imágenes -->
-<div id="carruselPrincipal" class="carousel slide mb-5 card-bagado p-1" data-bs-ride="carousel">
-    <div class="carousel-inner" style="border-radius: 8px; overflow: hidden;">
+<!-- 1. Carrusel de Imágenes Uniforme -->
+<div id="carruselPrincipal" class="carousel slide mb-5 card-bagado p-1 shadow-sm" data-bs-ride="carousel">
+    <div class="carousel-inner rounded overflow-hidden">
         {% for img in carrusel_imagenes %}
         <div class="carousel-item {% if loop.first %}active{% endif %}">
-            <img src="{{ url_for('static', filename='uploads/' ~ img.imagen) }}" class="d-block w-100 slider-img" alt="Torneo">
+            <img src="{{ url_for('static', filename='uploads/' ~ img.imagen) }}" alt="Torneo Bagadó">
         </div>
         {% else %}
         <div class="carousel-item active">
-            <img src="{{ url_for('static', filename='img/default_slider.jpg') }}" class="d-block w-100 slider-img" alt="Bienvenida">
+            <img src="{{ url_for('static', filename='img/default_slider.jpg') }}" alt="Bienvenida">
         </div>
         {% endfor %}
     </div>
@@ -53,6 +53,30 @@
         <span class="carousel-control-next-icon" aria-hidden="true"></span>
     </button>
 </div>
+
+{% if homenajeados %}
+<div class="container py-5 mb-4">
+    <div class="text-center mb-5">
+        <h2 class="fw-bold text-dark">Homenajeados de Nuestro Municipio</h2>
+        <p class="text-muted">Reconocimiento a quienes dejan una huella imborrable en nuestra comunidad.</p>
+    </div>
+    
+    <div class="row justify-content-center">
+        {% for hom in homenajeados %}
+        <div class="col-md-4 col-sm-6 mb-4">
+            <div class="card h-100 border-0 shadow-sm text-center p-4 bg-light rounded">
+                <div class="caja-homenajeado rounded-top">
+                    <img src="{{ url_for('static', filename='uploads/' ~ hom.foto) }}" alt="{{ hom.nombre }}">
+                </div>
+                <h5 class="fw-bold text-dark">{{ hom.nombre }}</h5>
+                <hr class="w-25 mx-auto border-secondary my-3">
+                <p class="text-muted small mb-0">{{ hom.motivo }}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
 
 <div class="container py-5">
     <h2 class="mb-4 fw-bold text-bagado-verde-primario">Equipos Participantes</h2>
@@ -67,11 +91,9 @@
                     {% for eq in cat.equipos %}
                         <div class="col-md-4 mb-4">
                             <div class="card-bagado h-100 d-flex flex-column align-items-center p-4 text-center">
-                                <!-- Mostrar escudo del equipo -->
                                 {% if eq.escudo %}
-                                    <img src="{{ url_for('static', filename='uploads/' ~ eq.escudo) }}" class="escudo-md mb-3" alt="Escudo {{ eq.nombre }}">
+                                    <img src="{{ url_for('static', filename='uploads/' ~ eq.escudo) }}" class="escudo-md mb-3 object-fit-cover rounded-circle" width="60" height="60" alt="Escudo {{ eq.nombre }}">
                                 {% else %}
-                                    <!-- Escudo por defecto -->
                                     <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" fill="var(--bagado-verde-primario)" class="bi bi-shield-fill mb-3" viewBox="0 0 16 16">
                                         <path d="M5.072.56C6.157.265 7.31 0 8 0s1.843.265 2.928.56c1.11.3 2.229.655 2.887.87a1.54 1.54 0 0 1 1.044 1.262c.596 4.477-.787 7.795-2.465 9.99a11.8 11.8 0 0 1-2.517 2.453 7 7 0 0 1-1.048.625c-.28.132-.581.24-.829.24s-.548-.108-.829-.24a7 7 0 0 1-1.048-.625 11.8 11.8 0 0 1-2.517-2.453C1.928 10.487.545 7.169 1.141 2.692A1.54 1.54 0 0 1 2.185 1.43 63 63 0 0 1 5.072.56z"/>
                                     </svg>
@@ -106,37 +128,44 @@
 
     <!-- Buscador público de partidos -->
     <div class="input-group mb-4 card-bagado p-2 border-0">
-        <span class="input-group-text bg-white border-0 text-muted">🔍</span>
+        <span class="input-group-text bg-white border-0 text-muted">Buscar</span>
         <input type="text" id="buscadorResultados" class="form-control border-0 shadow-none" placeholder="Buscar por equipo, categoría o fase del partido...">
     </div>
 
     <div class="row" id="contenedorPartidos">
         {% for p in partidos_jugados %}
         <div class="col-md-6 mb-4 partido-card" data-busqueda="{{ p.categoria.nombre }} {{ p.fase }} {{ p.equipo_local.nombre }} {{ p.equipo_visitante.nombre }}">
-            <div class="card-bagado h-100">
+            <div class="card-bagado h-100 d-flex flex-column">
                 <div class="card-bagado-header d-flex justify-content-between align-items-center p-3">
                     <span class="badge bg-bagado-verde-primario">{{ p.categoria.nombre }}</span>
                     <span class="fw-bold small text-uppercase text-bagado-amarillo-oro">{{ p.fase }}</span>
                 </div>
-                <div class="card-body p-4 text-center">
+                <div class="card-body p-4 text-center flex-grow-1">
                     <div class="row align-items-center mb-4">
-                        <div class="col-5 text-end">
-                            <h5 class="fw-bold text-dark mb-0">{{ p.equipo_local.nombre }}</h5>
+                        <div class="col-4 text-end">
+                            {% if p.equipo_local.escudo %}
+                                <img src="{{ url_for('static', filename='uploads/' ~ p.equipo_local.escudo) }}" width="40" height="40" class="rounded-circle me-2 object-fit-cover shadow-sm" alt="Escudo">
+                            {% endif %}
+                            <h5 class="fw-bold text-dark mb-0 d-inline-block align-middle">{{ p.equipo_local.nombre }}</h5>
                         </div>
-                        <div class="col-2 px-0">
-                            <div class="bg-bagado-verde-primario text-white fw-bold py-2 rounded">{{ p.goles_local }} - {{ p.goles_visitante }}</div>
+                        <div class="col-4 px-0 text-center">
+                            <div class="bg-dark text-white fw-bold py-2 px-3 rounded fs-5 shadow-sm d-inline-block border border-2 border-secondary">
+                                {{ p.goles_local }} - {{ p.goles_visitante }}
+                            </div>
                             {% if p.penales_local is not none %}
-                                <div class="small text-muted mt-1">Penales: ({{ p.penales_local }}-{{ p.penales_visitante }})</div>
+                                <div class="small text-danger fw-bold mt-2">Penales: ({{ p.penales_local }}-{{ p.penales_visitante }})</div>
                             {% endif %}
                         </div>
-                        <div class="col-5 text-start">
-                            <h5 class="fw-bold text-dark mb-0">{{ p.equipo_visitante.nombre }}</h5>
+                        <div class="col-4 text-start">
+                            <h5 class="fw-bold text-dark mb-0 d-inline-block align-middle">{{ p.equipo_visitante.nombre }}</h5>
+                            {% if p.equipo_visitante.escudo %}
+                                <img src="{{ url_for('static', filename='uploads/' ~ p.equipo_visitante.escudo) }}" width="40" height="40" class="rounded-circle ms-2 object-fit-cover shadow-sm" alt="Escudo">
+                            {% endif %}
                         </div>
                     </div>
 
                     <hr>
 
-                    <!-- Estadísticas del partido -->
                     <div class="text-start small mt-3">
                         <h6 class="fw-bold text-bagado-verde-primario mb-2">Resumen y Estadísticas:</h6>
                         {% if p.estadisticas %}
@@ -160,8 +189,33 @@
                         {% endif %}
                     </div>
                 </div>
-                <div class="card-footer bg-light border-0 p-3 text-muted small text-end">
-                    Cancha: {{ p.cancha or 'Por definir' }} | Fecha: {{ p.fecha or 'N/A' }}
+                
+                <!-- FOOTER CON LÓGICA DE GANADOR PARA FUTBOL -->
+                <div class="card-footer bg-light border-0 p-3 text-center">
+                    <div class="text-muted small mb-2 text-end">
+                        Cancha: {{ p.cancha or 'Por definir' }} | Fecha: {{ p.fecha or 'N/A' }}
+                    </div>
+                    {% if p.estado == 'Jugado' %}
+                        {% if p.fase == 'Final' %}
+                            <div class="p-2 bg-warning-subtle border border-warning rounded shadow-sm">
+                                {% if p.goles_local > p.goles_visitante or (p.goles_local == p.goles_visitante and p.penales_local and p.penales_local > p.penales_visitante) %}
+                                    <span class="d-block fw-bold text-dark fs-6">CAMPEON: {{ p.equipo_local.nombre if p.equipo_local else p.info_local }}</span>
+                                    <span class="text-muted small">Subcampeon: {{ p.equipo_visitante.nombre if p.equipo_visitante else p.info_visitante }}</span>
+                                {% else %}
+                                    <span class="d-block fw-bold text-dark fs-6">CAMPEON: {{ p.equipo_visitante.nombre if p.equipo_visitante else p.info_visitante }}</span>
+                                    <span class="text-muted small">Subcampeon: {{ p.equipo_local.nombre if p.equipo_local else p.info_local }}</span>
+                                {% endif %}
+                            </div>
+                        {% elif p.fase == 'Tercer Puesto' %}
+                            <div class="p-2 bg-white border border-secondary rounded shadow-sm">
+                                {% if p.goles_local > p.goles_visitante or (p.goles_local == p.goles_visitante and p.penales_local and p.penales_local > p.penales_visitante) %}
+                                    <span class="fw-bold text-dark">Ganador (3er Lugar): {{ p.equipo_local.nombre if p.equipo_local else p.info_local }}</span>
+                                {% else %}
+                                    <span class="fw-bold text-dark">Ganador (3er Lugar): {{ p.equipo_visitante.nombre if p.equipo_visitante else p.info_visitante }}</span>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -172,47 +226,79 @@
         {% endfor %}
     </div>
 
-<!-- SECCIÓN PÚBLICA DE PODIOS eSPORTS / CONSOLA -->
-{% set mostrar_podios = false %}
-{% for cat in categorias %}
-    {% if cat.podio and (cat.podio.campeon or cat.podio.subcampeon or cat.podio.tercer_puesto) %}
-        {% set mostrar_podios = true %}
-    {% endif %}
-{% endfor %}
-
-{% if mostrar_podios %}
-<div class="container py-5 mt-3 border-top">
-    <h3 class="fw-bold text-bagado-verde-primario mb-4">Cuadro de Honor - eSports</h3>
-    <div class="row">
-        {% for cat in categorias %}
-            {% if cat.podio and (cat.podio.campeon or cat.podio.subcampeon or cat.podio.tercer_puesto) %}
-            <div class="col-md-4 mb-4">
-                <div class="card-bagado p-0 h-100 border-top border-4 border-warning">
-                    <div class="card-bagado-header p-3 text-center">
-                        <h5 class="mb-0 fw-bold">{{ cat.nombre }}</h5>
-                    </div>
-                    <div class="card-body p-4">
-                        <ul class="list-group list-group-flush border-0">
-                            <li class="list-group-item border-0 d-flex justify-content-between align-items-center px-0">
-                                <span class="fw-bold text-warning">Campeón:</span>
-                                <span class="badge bg-dark fs-6">{{ cat.podio.campeon or 'N/A' }}</span>
-                            </li>
-                            <li class="list-group-item border-0 d-flex justify-content-between align-items-center px-0">
-                                <span class="fw-bold text-secondary">Subcampeón:</span>
-                                <span class="badge bg-secondary fs-6">{{ cat.podio.subcampeon or 'N/A' }}</span>
-                            </li>
-                            <li class="list-group-item border-0 d-flex justify-content-between align-items-center px-0">
-                                <span class="fw-bold text-danger">Tercer Puesto:</span>
-                                <span class="badge bg-danger fs-6">{{ cat.podio.tercer_puesto or 'N/A' }}</span>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
+<!-- PODIOS DE ESPORTS -->
+{% if podios_esports %}
+    {% for podio in podios_esports %}
+    <div class="row text-center mb-5 align-items-end justify-content-center mt-5">
+        <div class="col-12 mb-3">
+            <h3 class="fw-bold text-bagado-verde-primario border-bottom pb-2">
+                Podio Oficial: {{ podio.categoria.nombre }}
+            </h3>
+        </div>
+        
+        <!-- SUBCAMPEÓN (Izquierda) -->
+        <div class="col-4 col-md-3 order-1">
+            <div class="p-3 bg-light border border-secondary rounded shadow-sm">
+                <strong class="d-block mt-2">Subcampeon</strong>
+                <span class="text-muted fw-bold">{{ podio.subcampeon }}</span>
             </div>
-            {% endif %}
-        {% endfor %}
+        </div>
+        
+        <!-- CAMPEÓN (Centro) -->
+        <div class="col-4 col-md-4 order-2 mb-3">
+            <div class="p-4 bg-white border border-warning rounded shadow">
+                <strong class="d-block mt-2 text-warning fs-5">CAMPEON</strong>
+                <span class="text-dark fw-bold fs-5">{{ podio.campeon }}</span>
+            </div>
+        </div>
+        
+        <!-- TERCER PUESTO (Derecha - Opcional) -->
+        {% if podio.tercer_puesto %}
+        <div class="col-4 col-md-3 order-3">
+            <div class="p-3 bg-light border border-danger opacity-75 rounded shadow-sm">
+                <strong class="d-block mt-2">Tercer Puesto</strong>
+                <span class="text-muted fw-bold">{{ podio.tercer_puesto }}</span>
+            </div>
+        </div>
+        {% endif %}
     </div>
-</div>
+    {% endfor %}
+{% endif %}
+
+<!-- PODIOS DE YEIMI -->
+{% if podios_yeimi %}
+    {% for podio in podios_yeimi %}
+    <div class="row text-center mb-5 align-items-end justify-content-center mt-5">
+        <div class="col-12 mb-3">
+            <h3 class="fw-bold text-success border-bottom pb-2">
+                Podio Oficial: {{ podio.categoria.nombre }}
+            </h3>
+        </div>
+        
+        <div class="col-4 col-md-3 order-1">
+            <div class="p-3 bg-light border border-secondary rounded shadow-sm">
+                <strong class="d-block mt-2">Subcampeon</strong>
+                <span class="text-muted fw-bold">{{ podio.subcampeon.nombre if podio.subcampeon else 'N/A' }}</span>
+            </div>
+        </div>
+        
+        <div class="col-4 col-md-4 order-2 mb-3">
+            <div class="p-4 bg-white border border-warning rounded shadow">
+                <strong class="d-block mt-2 text-warning fs-5">CAMPEON</strong>
+                <span class="text-dark fw-bold fs-5">{{ podio.campeon.nombre if podio.campeon else 'N/A' }}</span>
+            </div>
+        </div>
+        
+        {% if podio.tercer_puesto %}
+        <div class="col-4 col-md-3 order-3">
+            <div class="p-3 bg-light border border-danger opacity-75 rounded shadow-sm">
+                <strong class="d-block mt-2">Tercer Puesto</strong>
+                <span class="text-muted fw-bold">{{ podio.tercer_puesto.nombre }}</span>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
 {% endif %}
 
 </div>
