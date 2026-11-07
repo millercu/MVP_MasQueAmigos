@@ -28,7 +28,7 @@ def panel():
     torneos = Torneo.query.order_by(Torneo.fecha_creacion.desc()).all()
     torneo_activo = Torneo.query.filter_by(estado='Activo').first()
     
-    # AUTOCORRECCIÓN 1: Si no hay torneos creados, creamos uno principal por defecto
+    #Si no hay torneos creados, creamos uno principal por defecto
     if not torneo_activo:
         if not torneos:
             torneo_activo = Torneo(nombre="Torneo Principal", estado='Activo')
@@ -40,7 +40,7 @@ def panel():
             torneo_activo.estado = 'Activo'
             db.session.commit()
 
-    # AUTOCORRECCIÓN 2: Rescatar automáticamente categorías antiguas sin torneo asignado
+    # Rescatar automáticamente categorías antiguas sin torneo asignado
     categorias_huerfanas = Categoria.query.filter_by(torneo_id=None).all()
     if categorias_huerfanas:
         for cat in categorias_huerfanas:
@@ -68,7 +68,7 @@ def panel():
                            partidos=partidos,
                            documentos=documentos,
                            torneos=torneos,
-                           torneo_activo=torneo_activo,carrusel_imagenes=carrusel_imagenes,  # <-- AGREGAR ESTO
+                           torneo_activo=torneo_activo,carrusel_imagenes=carrusel_imagenes, 
                            patrocinadores=patrocinadores,
                            homenajeados=homenajeados)
 
@@ -162,7 +162,7 @@ def eliminar_homenajeado(id):
     return redirect(url_for('admin.panel'))
 
 
-# NUEVA RUTA: Para que el admin pueda reasignar el equipo de un jugador
+# admin pueda reasignar el equipo de un jugador
 @admin_bp.route('/reasignar-jugador/<int:jugador_id>', methods=['POST'])
 def reasignar_jugador(jugador_id):
     if session.get('user_rol') != 'admin':
@@ -182,7 +182,7 @@ def reasignar_jugador(jugador_id):
     return redirect(url_for('admin.panel'))
 
 
-# NUEVA RUTA: Aprobar o rechazar definitivamente el traspaso
+# Aprobar o rechazar definitivamente el traspaso
 @admin_bp.route('/resolver-traspaso/<int:traspaso_id>/<string:accion>', methods=['POST'])
 def resolver_traspaso(traspaso_id, accion):
     if session.get('user_rol') != 'admin':
@@ -195,14 +195,14 @@ def resolver_traspaso(traspaso_id, accion):
         # 1. Cambiar el equipo del jugador al equipo destino
         jugador.equipo_id = traspaso.equipo_destino_id
 
-        # NUEVO: Establecer la fecha de hoy como inicio del nuevo contrato
+        #Establecer la fecha de hoy como inicio del nuevo contrato
         jugador.fecha_inicio = datetime.today().strftime('%Y-%m-%d')
 
-        # 2. Si se especificó una nueva fecha de contrato, actualizarla
+        # Si se especificó una nueva fecha de contrato, actualizarla
         if traspaso.nuevo_fecha_fin:
             jugador.fecha_fin = traspaso.nuevo_fecha_fin
 
-        # 3. Marcar el traspaso como Avalado / Aprobado
+        # Marcar el traspaso como Avalado / Aprobado
         traspaso.estado = 'Completado'
         db.session.commit()
         
@@ -292,7 +292,7 @@ def generar_fixture(categoria_id):
         
         db.session.add_all([semi1, semi2])
         db.session.commit()
-        flash(f'Fixture generado con éxito para {categoria.nombre} (Sorteo Semifinal Directa).', 'success')
+        flash(f'Fixture generado con éxito para {categoria.nombre} (Semifinal Directa).', 'success')
 
     # CATEGORÍA MASCULINA (Repechaje: Requiere exactamente 5 equipos)
     elif len(equipos) == 5:
@@ -331,7 +331,7 @@ def generar_fixture(categoria_id):
         db.session.add(repechaje)
         db.session.commit()
         
-        flash(f'Fixture generado con éxito para {categoria.nombre} (Formato Repechaje).', 'success')
+        flash(f'Fixture generado con éxito para {categoria.nombre} (Repechaje).', 'success')
         
     else:
         flash(f'La categoría {categoria.nombre} tiene {len(equipos)} equipos. Se requieren exactamente 4 o 5 equipos para generar un fixture válido.', 'warning')

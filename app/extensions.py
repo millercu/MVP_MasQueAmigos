@@ -2,7 +2,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail
 from flask_migrate import Migrate
 from authlib.integrations.flask_client import OAuth
-from sqlalchemy import MetaData # <-- Se importa desde sqlalchemy, no desde flask_sqlalchemy
+from sqlalchemy import MetaData 
 
 # Convención de nombres para evitar errores en migraciones con SQLite
 naming_convention = {

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Acta Arbitral - Torneo Bagadó{% endblock %}
+{% block title %}Acta Arbitral{% endblock %}
 
 {% block content %}
 <div class="container py-4">
@@ -14,11 +14,9 @@
     <form method="POST" action="{{ url_for('admin.acta_partido', partido_id=partido.id) }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         
-        <!-- MARCADOR GLOBAL -->
         <div class="card-bagado p-4 mb-4 text-center border-top border-4 border-success">
             <h4 class="fw-bold mb-4 text-dark">Resultado del Encuentro</h4>
             <div class="row align-items-center justify-content-center">
-                <!-- Local -->
                 <div class="col-md-4 text-end">
                     <h5 class="fw-bold text-bagado-verde-primario">{{ partido.equipo_local.nombre }}</h5>
                     <label class="small text-muted">Goles en t. regular (Auto)</label>
@@ -28,7 +26,6 @@
                 
                 <div class="col-md-1 text-center fw-bold fs-3 text-muted">VS</div>
                 
-                <!-- Visitante -->
                 <div class="col-md-4 text-start">
                     <h5 class="fw-bold text-danger">{{ partido.equipo_visitante.nombre }}</h5>
                     <label class="small text-muted">Goles en t. regular (Auto)</label>
@@ -41,7 +38,6 @@
 
         <!-- ESTADÍSTICAS INDIVIDUALES -->
         <div class="row">
-            <!-- Equipo Local -->
             <div class="col-md-6 mb-4">
                 <div class="card-bagado h-100 overflow-hidden">
                     <div class="card-bagado-header fw-bold p-3">Plantilla Local: {{ partido.equipo_local.nombre }}</div>
@@ -130,7 +126,6 @@
     </form>
 </div>
 
-<!-- SCRIPT PARA CALCULAR GOLES AUTOMÁTICAMENTE INTACTO -->
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     function calcularGoles() {
@@ -149,12 +144,10 @@ document.addEventListener("DOMContentLoaded", function() {
         document.getElementById('goles_visitante_input').value = totalVisita;
     }
 
-    // Escuchar cambios en los inputs de goles
     document.querySelectorAll('.gol-local-input, .gol-visitante-input').forEach(input => {
         input.addEventListener('input', calcularGoles);
     });
 
-    // Calcular al cargar por si hay datos previos
     calcularGoles();
 });
 </script>

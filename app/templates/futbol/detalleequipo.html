@@ -9,11 +9,11 @@
                 <img src="{{ url_for('static', filename='uploads/' ~ equipo.escudo) }}" class="team-detail-crest shadow-sm" alt="Escudo de {{ equipo.nombre }}">
             {% endif %}
             <div class="team-detail-heading">
-                <span class="bagado-eyebrow">Ficha del club</span>
+                <span class="bagado-eyebrow">Detalles del club</span>
                 <h1 class="bagado-page-title mb-1">{{ equipo.nombre }}</h1>
                 <p class="bagado-page-subtitle mb-0">
                     Categoría:
-                    <span class="badge bg-bagado-verde-primario">{{ equipo.categoria.nombre if equipo.categoria else 'Sin Categoría' }}</span>
+                    <span class="badge bg-bagado-verde-primario ficha-club-categoria">{{ equipo.categoria.nombre if equipo.categoria else 'Sin Categoría' }}</span>
                     <span class="team-detail-separator">|</span>
                     Delegado: <strong>{{ equipo.delegado_asignado.nombres if equipo.delegado_asignado else 'No asignado' }}</strong>
                 </p>

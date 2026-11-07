@@ -165,6 +165,9 @@ def login():
             session['user_email'] = usuario.email
             session['user_rol'] = usuario.rol
 
+
+            session['mostrar_alerta_bug'] = True
+
             flash(f'Bienvenido de nuevo, {usuario.nombres}', 'success')
             
             # Redirección según el rol gestionado
@@ -203,8 +206,8 @@ def solicitar_recuperacion():
             enlace = url_for('auth.reset_password', token=token, _external=True)
             
             msg = Message(
-                subject='Recuperacion de Contrasena - Copa Mas Que Amigos', # Sin tildes ni eñes en el asunto para evitar bloqueos SMTP
-                sender='tu_correo@gmail.com', # Mismo correo de tu configuración
+                subject='Recuperacion de Contrasena - Copas Mas Que Amigos', 
+                sender='tu_correo@gmail.com', 
                 recipients=[email]
             )
             
@@ -216,7 +219,7 @@ def solicitar_recuperacion():
             mail.send(msg)
             
         # Mensaje genérico por seguridad
-        flash('Si el correo existe en nuestro sistema, hemos enviado las instrucciones.', 'info')
+        flash('Si el correo existe en nuestro sistema, ya te hemos enviado las instrucciones a seguir.', 'info')
         return redirect(url_for('auth.login'))
         
     return render_template('auth/solicitar.html')

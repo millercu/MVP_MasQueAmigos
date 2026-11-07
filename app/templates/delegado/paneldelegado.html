@@ -1,11 +1,10 @@
 {% extends "base.html" %}
-{% block title %}Panel de Delegado - Torneo Bagadó{% endblock %}
+{% block title %}Panel de Delegado{% endblock %}
 
 {% block content %}
 {% if equipo %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center">
-        <!-- Verificación del escudo -->
         {% if equipo.escudo %}
             <div class="me-3 p-1 rounded-circle bg-white shadow-sm border border-3 border-success d-inline-block">
                 <img src="{{ url_for('static', filename='uploads/' ~ equipo.escudo) }}" width="75" height="75" class="rounded-circle object-fit-cover" alt="Escudo">
@@ -25,7 +24,7 @@
     </div>
 </div>
 
-    <!-- Sistema de pestañas (Tabs) -->
+    <!-- Tabs -->
     <ul class="nav nav-tabs mb-4 delegado-tabs" id="delegadoTab" role="tablist">
         <li class="nav-item" role="presentation">
             <button class="nav-link active fw-semibold" id="plantilla-tab" data-bs-toggle="tab" data-bs-target="#plantilla-content" type="button" role="tab">Mi Plantilla</button>
@@ -44,12 +43,11 @@
     <!-- Contenido de las pestañas -->
     <div class="tab-content" id="delegadoTabContent">
         
-        <!-- PESTAÑA 1: MI PLANTILLA -->
+        <!-- MI PLANTILLA -->
         <div class="tab-pane fade show active" id="plantilla-content" role="tabpanel">
             <div class="card-bagado p-4 mb-5">
                 <h4 class="mb-4 text-dark fw-bold">Jugadores Inscritos</h4>
                 
-                <!-- Formulario real para agregar jugador -->
                 <div class="card-bagado border border-bagado-borde shadow-none bg-light p-4 mb-5">
                     <h5 class="mb-3 text-bagado-verde-primario fw-bold">Inscribir Nuevo Integrante</h5>
                     <form method="POST" action="{{ url_for('delegado.agregar_jugador') }}" enctype="multipart/form-data">
@@ -163,7 +161,6 @@
                                         </form>
                                     </div>
 
-                                    <!-- Modal de Edición -->
                                     <div class="modal fade" id="editModal{{ j.id }}" tabindex="-1" aria-hidden="true">
                                         <div class="modal-dialog modal-lg">
                                             <div class="modal-content">
@@ -255,7 +252,7 @@
                 
                 <form method="POST" action="{{ url_for('delegado.subir_escudo') }}" enctype="multipart/form-data">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                    <label class="form-label fw-bold text-bagado-verde-primario">Actualizar Escudo Oficial del Equipo</label>
+                    <label class="form-label fw-bold text-bagado-verde-primario">Actualizar escudo del Equipo</label>
                     <div class="input-group w-50 delegado-upload-group">
                         <input type="file" name="escudo" class="form-control" accept="image/*" required>
                         <button type="submit" class="btn btn-bagado-negro text-white bg-dark">
@@ -266,7 +263,7 @@
             </div>
         </div>
 
-        <!-- PESTAÑA 2: MERCADO DE FICHAJES -->
+        <!-- MERCADO DE FICHAJES -->
         <div class="tab-pane fade" id="mercado-content" role="tabpanel">
             <div class="card-bagado p-4 mb-4">
                 <h4 class="mb-3 text-bagado-verde-primario fw-bold">Jugadores Disponibles</h4>
@@ -307,7 +304,6 @@
                                             Hacer Oferta
                                         </button>
                                         
-                                        <!-- Modal de Oferta Fichaje -->
                                         <div class="modal fade" id="ofertaModal{{ j.id }}" tabindex="-1" aria-hidden="true">
                                             <div class="modal-dialog">
                                                 <div class="modal-content">
@@ -376,10 +372,9 @@
             </div>
         </div>
 
-        <!-- PESTAÑA 3: MIS NEGOCIACIONES -->
+        <!-- MIS NEGOCIACIONES -->
         <div class="tab-pane fade" id="negociaciones-content" role="tabpanel">
             <div class="row">
-                <!-- Ofertas Recibidas -->
                 <div class="col-md-6 mb-4">
                     <div class="card-bagado p-4 h-100">
                         <h5 class="fw-bold text-bagado-verde-primario border-bottom pb-2">Ofertas Recibidas</h5>
@@ -414,7 +409,6 @@
                                     </form>
                                 </div>
 
-                                <!-- Modal Renegociar -->
                                 <div class="modal fade" id="renegociarModal{{ oferta.id }}" tabindex="-1" aria-hidden="true">
                                     <div class="modal-dialog">
                                         <div class="modal-content">
@@ -459,7 +453,7 @@
                                 
                                 {% if oferta.estado == 'Contraoferta' %}
                                 <div class="alert alert-warning p-3 mt-3 border-0">
-                                    <p class="small mb-3"><strong>¡Atención!</strong> El equipo dueño renegoció la oferta. Nuevo monto exigido: <strong class="text-dark">$ {{ "{:,.0f}".format(oferta.monto or 0).replace(',', '.') }} COP</strong></p>
+                                    <p class="small mb-3"><strong>¡Atención!</strong> El equipo dueño del jugador ha renegociado la oferta. Nuevo monto exigido: <strong class="text-dark">$ {{ "{:,.0f}".format(oferta.monto or 0).replace(',', '.') }} COP</strong></p>
                                     <div class="d-flex gap-2">
                                         <form method="POST" action="{{ url_for('delegado.responder_oferta', oferta_id=oferta.id) }}">
                                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
@@ -483,7 +477,7 @@
             </div>
         </div>
 
-        <!-- Pestaña de Documentos (Delegado) -->
+        <!-- Pestaña de Documentos -->
         <div class="tab-pane fade" id="docs-content" role="tabpanel">
             <div class="card-bagado p-4 mb-4">
                 <h4 class="mb-3 text-bagado-verde-primario fw-bold">Centro de Documentos</h4>
@@ -544,10 +538,8 @@
 
 </div>
 
-<!-- SCRIPT INTACTO -->
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    // Presentación responsive: asignar a cada celda el título de su columna.
     document.querySelectorAll(".delegado-panel .table-responsive table").forEach(function(table) {
         const labels = Array.from(table.querySelectorAll("thead th")).map(function(heading) {
             return heading.textContent.replace(/\s+/g, " ").trim();
@@ -563,23 +555,19 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     
-    // 1. Limpieza total de texto (ignora tildes, acentos y mayúsculas)
     const limpiarTexto = (texto) => {
         if (!texto) return "";
         return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
     };
 
-    // 2. Lógica del buscador por Data-Attribute
     const buscador = document.getElementById("buscadorMercado");
     if (buscador) {
         buscador.addEventListener("input", function(e) { 
             let filtro = limpiarTexto(e.target.value);
             
-            // Selecciona TODAS las filas que tengan el atributo "data-busqueda"
             let filas = document.querySelectorAll("#tablaMercado tbody tr[data-busqueda]");
             
             filas.forEach(fila => {
-                // El JS ya no lee el HTML de la celda, lee el texto limpio de la fila
                 let contenidoFila = limpiarTexto(fila.getAttribute("data-busqueda"));
                 
                 if (contenidoFila.includes(filtro)) {
@@ -591,7 +579,6 @@ document.addEventListener("DOMContentLoaded", function() {
         });
     }
 
-    // 3. Temporizador de alertas
     setTimeout(function() {
         let alertas = document.querySelectorAll(".alert-dismissible");
         alertas.forEach(alerta => {
@@ -605,9 +592,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }, 4000);
 
 
-    // Función para mostrar/ocultar el campo de posición
     window.togglePosicion = function(selectElement) {
-        // Busca el formulario padre para afectar solo al formulario actual (inscripción o modal)
         let form = selectElement.closest('form');
         let posicionContainer = form.querySelector('.posicion-container');
         let posicionInput = form.querySelector('.input-posicion');
@@ -616,11 +601,10 @@ document.addEventListener("DOMContentLoaded", function() {
             posicionContainer.style.display = 'block';
         } else {
             posicionContainer.style.display = 'none';
-            posicionInput.value = ''; // Limpia el valor si no es deportista
+            posicionInput.value = ''; 
         }
     };
 
-    // Ejecutar al cargar la página para evaluar el estado inicial de todos los selectores
     document.querySelectorAll('.selector-rol').forEach(select => {
         togglePosicion(select);
     });

@@ -5,8 +5,8 @@ from datetime import datetime, date, timedelta
 class Torneo(db.Model):
     __tablename__ = 'torneo'
     id = db.Column(db.Integer, primary_key=True)
-    nombre = db.Column(db.String(100), nullable=False) # Ej: "Torneo Noviembre 2026"
-    estado = db.Column(db.String(20), default='Activo') # 'Activo' o 'Finalizado'
+    nombre = db.Column(db.String(100), nullable=False) 
+    estado = db.Column(db.String(20), default='Activo')
     fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
     
     categorias = db.relationship('Categoria', backref='torneo', cascade='all, delete-orphan')
@@ -17,7 +17,7 @@ class Usuario(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     nombres = db.Column(db.String(120), nullable=False)
-    tipo_documento = db.Column(db.String(10), nullable=True, default='CC') # <-- NUEVO
+    tipo_documento = db.Column(db.String(10), nullable=True, default='CC') 
     documento = db.Column(db.String(30), unique=True, index=True, nullable=False)
     telefono = db.Column(db.String(20), nullable=False)
     fecha_nacimiento = db.Column(db.String(20), nullable=False)
@@ -41,10 +41,10 @@ class Categoria(db.Model):
     __tablename__ = 'categoria'
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(100), nullable=False, unique=False)
-    torneo_id = db.Column(db.Integer, db.ForeignKey('torneo.id'), nullable=True) # Vinculación
+    torneo_id = db.Column(db.Integer, db.ForeignKey('torneo.id'), nullable=True) 
 
 
-    # Restaura solo esta línea para recuperar la categoría de los equipos:
+
     equipos = db.relationship('Equipo', backref='categoria', cascade='all, delete-orphan')
 
 class Equipo(db.Model):

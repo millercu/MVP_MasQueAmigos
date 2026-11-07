@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Inicio - Torneo de Fútbol Bagadó{% endblock %}
+{% block title %}Inicio{% endblock %}
 
 {% block content %}
 
@@ -33,7 +33,7 @@
     </form>
 </div>
 
-<!-- 1. Carrusel de Imágenes Uniforme -->
+<!-- Carrusel de Imágenes -->
 <div id="carruselPrincipal" class="carousel slide mb-5 card-bagado p-1 shadow-sm" data-bs-ride="carousel">
     <div class="carousel-inner rounded overflow-hidden">
         {% for img in carrusel_imagenes %}
@@ -58,7 +58,7 @@
 <div class="container py-5 mb-4">
     <div class="text-center mb-5">
         <h2 class="fw-bold text-dark">Homenajeados de Nuestro Municipio</h2>
-        <p class="text-muted">Reconocimiento a quienes dejan una huella imborrable en nuestra comunidad.</p>
+        <p class="text-muted">Reconocimiento a quienes han dejado una huella imborrable en nuestra comunidad.</p>
     </div>
     
     <div class="row justify-content-center">
@@ -190,7 +190,7 @@
                     </div>
                 </div>
                 
-                <!-- FOOTER CON LÓGICA DE GANADOR PARA FUTBOL -->
+                <!-- GANADOR PARA FUTBOL -->
                 <div class="card-footer bg-light border-0 p-3 text-center">
                     <div class="text-muted small mb-2 text-end">
                         Cancha: {{ p.cancha or 'Por definir' }} | Fecha: {{ p.fecha or 'N/A' }}
@@ -236,7 +236,7 @@
             </h3>
         </div>
         
-        <!-- SUBCAMPEÓN (Izquierda) -->
+        <!-- SUBCAMPEÓN -->
         <div class="col-4 col-md-3 order-1">
             <div class="p-3 bg-light border border-secondary rounded shadow-sm">
                 <strong class="d-block mt-2">Subcampeon</strong>
@@ -244,7 +244,7 @@
             </div>
         </div>
         
-        <!-- CAMPEÓN (Centro) -->
+        <!-- CAMPEÓN -->
         <div class="col-4 col-md-4 order-2 mb-3">
             <div class="p-4 bg-white border border-warning rounded shadow">
                 <strong class="d-block mt-2 text-warning fs-5">CAMPEON</strong>
@@ -252,7 +252,7 @@
             </div>
         </div>
         
-        <!-- TERCER PUESTO (Derecha - Opcional) -->
+        <!-- TERCER PUESTO -->
         {% if podio.tercer_puesto %}
         <div class="col-4 col-md-3 order-3">
             <div class="p-3 bg-light border border-danger opacity-75 rounded shadow-sm">
@@ -303,7 +303,6 @@
 
 </div>
 
-<!-- Script para el buscador público -->
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     const buscador = document.getElementById("buscadorResultados");

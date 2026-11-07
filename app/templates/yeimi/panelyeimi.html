@@ -5,7 +5,7 @@
 <div class="container py-4 bagado-view yeimi-admin-page">
     <header class="bagado-page-header mb-4">
         <div>
-            <span class="bagado-eyebrow">Administración de resultados</span>
+            <span class="bagado-eyebrow">Administración de resultados Yeimi</span>
             <h1 class="bagado-page-title mb-1">Podios del torneo de Yeimi</h1>
             <p class="bagado-page-subtitle mb-0">Selecciona los equipos oficiales que ocuparon los primeros puestos.</p>
         </div>
@@ -67,9 +67,22 @@
                             </select>
                         </div>
                     </div>
-                    <div class="yeimi-form-actions">
-                        <button type="submit" class="btn btn-primario fw-bold px-4">Guardar podio de Yeimi</button>
-                    </div>
+                    <footer class="d-flex justify-content-between align-items-center mt-4">
+                        {% if cat.podio_yeimi %}
+                            <button type="submit"
+                                    formaction="{{ url_for('yeimi.eliminar_podio', categoria_id=cat.id) }}"
+                                    class="btn btn-outline-danger fw-bold"
+                                    class="d-inline form-eliminar">
+                                Eliminar podio
+                            </button>
+                        {% else %}
+                            <span aria-hidden="true"></span>
+                        {% endif %}
+
+                        <button type="submit" class="btn btn-primario fw-bold px-4">
+                            Guardar podio de Yeimi
+                        </button>
+                    </footer>
                 </form>
             </div>
         </article>

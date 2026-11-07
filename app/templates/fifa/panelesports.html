@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% block title %}Panel eSports - Consola{% endblock %}
+{% block title %}Panel Esports - Consola{% endblock %}
 
 {% block content %}
 <div class="container py-4 esports-admin-page">
     <header class="esports-page-header mb-4">
         <div class="esports-page-heading">
             <span class="esports-eyebrow">Administración de competición</span>
-            <h1 class="esports-page-title">Panel de podios eSports</h1>
+            <h1 class="esports-page-title">Panel de podios Esports</h1>
             <p class="esports-page-subtitle mb-0">
                 Torneo activo:
                 <strong>{{ torneo_activo.nombre if torneo_activo else 'Ninguno' }}</strong>
@@ -16,7 +16,7 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
                 <path fill-rule="evenodd" d="M15 8a.5.5 0 0 1-.5.5H2.707l3.147 3.146a.5.5 0 0 1-.708.708l-4-4a.5.5 0 0 1 0-.708l4-4a.5.5 0 1 1 .708.708L2.707 7.5H14.5A.5.5 0 0 1 15 8z"/>
             </svg>
-            Panel general de fútbol
+            Panel general de fifa
         </a>
     </header>
 
@@ -24,7 +24,7 @@
         <div class="esports-section-heading mb-4">
             <div>
                 <span class="esports-eyebrow">Resultados oficiales</span>
-                <h2 class="esports-section-title mb-1">Selección de podios por categoría</h2>
+                <h2 class="esports-section-title mb-1">Selección de podio videoJuego FIFA</h2>
                 <p class="text-muted mb-0">Selecciona los participantes inscritos para registrar el campeón, subcampeón y tercer puesto de cada categoría.</p>
             </div>
         </div>
@@ -91,7 +91,6 @@
                             <button type="submit"
                                     formaction="{{ url_for('fifa.eliminar_podio', categoria_id=cat.id) }}"
                                     class="btn btn-outline-danger"
-                                    onclick="return confirm('¿Estás seguro de eliminar el podio registrado para esta categoría?');">
                                 Eliminar podio
                             </button>
                         {% else %}
@@ -114,7 +113,7 @@
                 </svg>
             </div>
             <h3 class="esports-empty-title">Todavía no hay categorías</h3>
-            <p class="text-muted mb-3">Crea una categoría de eSports desde el panel general para poder registrar aquí sus participantes y podios.</p>
+            <p class="text-muted mb-3">Crea una categoría de Esports desde el panel general para poder registrar aquí sus participantes y podios.</p>
             <a href="{{ url_for('admin.panel') }}" class="btn btn-primario">Ir al panel general</a>
         </div>
         {% endfor %}

@@ -38,3 +38,16 @@ def guardar_podio(categoria_id):
     
     db.session.commit()
     return redirect(url_for('yeimi.panel'))
+
+@yeimi_bp.route('/eliminar-podio/<int:categoria_id>', methods=['POST'])
+def eliminar_podio(categoria_id):
+    if session.get('user_rol') != 'admin':
+        return redirect(url_for('main.index'))
+        
+    podio = PodioYeimi.query.filter_by(categoria_id=categoria_id).first()
+    if podio:
+        db.session.delete(podio)
+        db.session.commit()
+        flash('El podio de esta categoría ha sido eliminado correctamente.', 'info')
+    
+    return redirect(url_for('yeimi.panel'))

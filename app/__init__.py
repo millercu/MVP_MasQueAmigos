@@ -18,12 +18,10 @@ def create_app(config_class=Config):
     mail.init_app(app)
 
     # 2. Registro de Blueprints (Rutas aisladas)
-    # Se importan dentro de la función para garantizar que la app ya exista
     
     from app.blueprints.auth_bp import auth_bp
     from app.blueprints.admin_bp import admin_bp
     from app.blueprints.delegado_bp import delegado_bp
-    # from app.blueprints.futbol_bp import futbol_bp
     from app.blueprints.yeimi_bp import yeimi_bp
     from app.blueprints.fifa_bp import fifa_bp
     from app.blueprints.main_bp import main_bp
@@ -39,16 +37,19 @@ def create_app(config_class=Config):
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(delegado_bp, url_prefix='/delegado')
     app.register_blueprint(admin_bp, url_prefix='/admin')
-    # app.register_blueprint(futbol_bp, url_prefix='/futbol')
     app.register_blueprint(yeimi_bp, url_prefix='/yeimi')
     app.register_blueprint(fifa_bp, url_prefix='/fifa')
     app.register_blueprint(main_bp)
 
-    app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # Límite de 5 MB por archivo
+    app.config['MAX_CONTENT_LENGTH'] = 512 * 1024 
 
-    app.config['SESSION_COOKIE_SECURE'] = True      # Solo transmite cookies por HTTPS
-    app.config['SESSION_COOKIE_HTTPONLY'] = True    # Evita que el JavaScript acceda a la cookie (mitiga ataques XSS)
-    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'   # Protege la cookie contra envíos cruzados
+    app.config['SESSION_COOKIE_SECURE'] = True      
+    app.config['SESSION_COOKIE_HTTPONLY'] = True    
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  
+
+    @app.errorhandler(413)
+    def error_archivo_grande(e):
+         return render_template('errores/413.html'), 413
 
 
     @app.errorhandler(404)
@@ -79,6 +80,5 @@ def create_app(config_class=Config):
     csrf.init_app(app)
     Talisman(app, content_security_policy=None)
 
-    # Ruta de validación para confirmar que el servidor levanta correctamente
     
     return app

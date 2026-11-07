@@ -2159,3 +2159,14 @@ h1, h2, h3, h4,
     object-fit: contain; /* Muestra la imagen entera sin recortar nada */
     object-position: center;
 }
+
+
+.ficha-club-categoria {
+    color: #495057 !important; /* Un gris oscuro elegante */
+    font-weight: 600;
+}
+
+/* Forzar mayúsculas en los nombres de los equipos en todas las tarjetas */
+.card-bagado h5.text-dark {
+    text-transform: uppercase !important;
+}
